@@ -14,7 +14,8 @@ public:
     BombermanGame(int w, int h) : width(w), height(h) 
     {
         bomber = new int* [height];
-        for (int i = 0; i < height; ++i) {
+        for (int i = 0; i < height; i++) 
+        {
             bomber[i] = new int[width];
         }
     }
@@ -52,6 +53,7 @@ public:
                     SetCursor(x, y, 8);
                     cout << (char)178;
                 }
+ 
             }
         }      
     }
@@ -65,13 +67,21 @@ public:
         SetConsoleTextAttribute(h, color);
     }
     //стены на карте
-    void WallNumberTwo(int x, int y)
+    void WallNumberTwo(int x, int y) // 2 2
     {
+        HANDLE h = GetStdHandle(-11);
         COORD position;
-        position.X = x * 3;
-        position.Y = y * 2;
-        SetCursor(x, y, 12);
-        cout << (char)178;
+        for (int j = 0; j < 2; j++) // каждая ячейка это две строки по высоте
+        {
+            for (int i = 0; i < 3; i++) // каждая ячейка это 3 столбика
+            {
+                position.X = x * 3 + i; // 6 7 8    6 7 8 
+                position.Y = y * 2 + j; // 4 4 4    5 5 5
+                SetConsoleCursorPosition(h, position);
+                SetConsoleTextAttribute(h, 4);
+                cout << (char)178;
+            }
+        }
     }
     //очистка памяти
     void FreeMemory() {
@@ -85,14 +95,45 @@ public:
 int main()
 {
     srand(time(NULL));
-    BombermanGame b(60,20);// вызов класса
+
+    BombermanGame b(63,18);// вызов класса
     b.Options();//скрываем курсор
+    b.WallNumberTwo(2,2);
+    b.WallNumberTwo(2,4);
+    b.WallNumberTwo(2,6);
+
+    b.WallNumberTwo(4,2);
+    b.WallNumberTwo(4, 4);
+    b.WallNumberTwo(4, 6);
+
+    b.WallNumberTwo(6, 2);
+    b.WallNumberTwo(6, 4);
+    b.WallNumberTwo(6, 6);
+
+    b.WallNumberTwo(8, 2);
+    b.WallNumberTwo(8, 4);
+    b.WallNumberTwo(8, 6);
+
+    b.WallNumberTwo(10, 2);
+    b.WallNumberTwo(10, 4);
+    b.WallNumberTwo(10, 6);
+
+    b.WallNumberTwo(12, 2);
+    b.WallNumberTwo(12, 4);
+    b.WallNumberTwo(12, 6);
+
+    b.WallNumberTwo(14, 2);
+    b.WallNumberTwo(14, 4);
+    b.WallNumberTwo(14, 6);
+
+    b.WallNumberTwo(16, 2);
+    b.WallNumberTwo(16, 4);
+    b.WallNumberTwo(16, 6);
+
+    b.WallNumberTwo(18, 2);
+    b.WallNumberTwo(18, 4);
+    b.WallNumberTwo(18, 6);
     b.Wall();//основные стны
-    b.WallNumberTwo(6, 5);//стены на карте
-    b.WallNumberTwo(6, 6);//стены на карте
-    b.WallNumberTwo(7, 6);//стены на карте
-    b.WallNumberTwo(8, 6);//стены на карте
-    b.WallNumberTwo(7, 5);//стены на карте
-    b.WallNumberTwo(8, 5);//стены на карте
-    b.WallNumberTwo(0, 0);//стены на карте
+    cout << "\n";
+    
 }
