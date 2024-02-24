@@ -16,10 +16,10 @@ public:
     int height;
     int** bomber = nullptr;
 
-    BombermanGame(int w, int h) : width(w), height(h) 
+    BombermanGame(int w, int h) : width(w), height(h)
     {
         bomber = new int* [height];
-        for (int i = 0; i < height; i++) 
+        for (int i = 0; i < height; i++)
         {
             bomber[i] = new int[width];
         }
@@ -35,7 +35,7 @@ public:
         SetConsoleCursorInfo(h, &ci); // применить настройки
     }
     //очистка памяти
-    ~BombermanGame() 
+    ~BombermanGame()
     {
         FreeMemory();
     }
@@ -44,7 +44,7 @@ public:
     {
         for (int y = 0; y < height; y++)
         {
-           
+
             for (int x = 0; x < width; x++)
             {
                 bomber[y][x] = rand() % 5;
@@ -58,9 +58,9 @@ public:
                     SetCursor(x, y, 8);
                     cout << (char)178;
                 }
- 
+
             }
-        }  
+        }
 
     }
     void Person(int x, int y) // Рисует персонажа в указанных координатах
@@ -115,17 +115,24 @@ public:
                     position.Y++;// изменение позиции ГГ вниз на 1 по иксу
                 }
             }
-
-            // Рисуем персонажа в новой позиции
-            SetCursor(position.X, position.Y, 12);
-            cout << (char)1;
-
+            else if (code == SPACE) { // Если нажата клавиша пробела
+                // Проверяем, что перед персонажем нет стены
+                if (bomber[position.Y][position.X + 1] != 1) {
+                    // Рисуем "бомбу" перед персонажем
+                    SetCursor(position.X + 1, position.Y, PURPUR);
+                    cout << (char)254;
+                }
+            }
+                // Рисуем персонажа в новой позиции
+                SetCursor(position.X, position.Y, 12);
+                cout << (char)1;
+            
             // Опционально можно добавить проверку на нажатие клавиши выхода, например ESCAPE
 
         }
     }
 
-    void KeyBoard(int x,int y)
+    void KeyBoard(int x, int y)
     {
         COORD position;
         position.X = x;
@@ -199,7 +206,7 @@ public:
 int main()
 {
     srand(time(NULL));
-    BombermanGame b(63,18);// вызов класса
+    BombermanGame b(63, 18);// вызов класса
     b.Options();//скрываем курсор
     b.AutomateWallNumberTwo();
     b.Wall();//основные стны
