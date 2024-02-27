@@ -3,14 +3,12 @@
 #include <Windows.h>
 #include <conio.h> 
 using namespace std;
+enum MazeObject { HALL, WALL, COIN, ENEMY, BORDER };
+enum Color { DARKGREEN = 2, YELLOW = 14, RED = 12, BLUE = 9, WHITE = 15, DARKYELLOW = 6, DARKRED = 4, PURPUR = 13, GREEN = 10 };
+enum KeyCode { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, UP = 72, DOWN = 80 };
 
 class BombermanGame {
 public:
-    enum MazeObject { HALL, WALL, COIN, ENEMY, BORDER };
-    enum Color { DARKGREEN = 2, YELLOW = 14, RED = 12, BLUE = 9, WHITE = 15, DARKYELLOW = 6, DARKRED = 4, PURPUR = 13, GREEN = 10 };
-    enum KeyCode { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, UP = 72, DOWN = 80 };
-
-
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
     int width;
     int height;
@@ -61,7 +59,26 @@ public:
 
             }
         }
-
+    }
+    void Enemy()
+    {
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int r = rand() % 10; // 0...9
+                // если выпадает 0 - враг остаётся (10% случаев)
+                if (r != 0) // если выпадает не 0 (а число от 1 до 9) - врага убираем (вероятность 90%)
+                {
+                    bomber[y][x] = 0; // убираем врага
+                }
+                if (bomber[y][x] == 3)
+                {
+                    SetCursor(x, y, 12);
+                    cout << (char)224,11;
+                }
+            }
+        }
     }
     void Person(int x, int y) // Рисует персонажа в указанных координатах
     {
@@ -78,42 +95,24 @@ public:
             {
                 code = _getch(); // Получаем расширенный код клавиши
             }
-
             // Стираем персонажа в текущей позиции
             SetConsoleCursorPosition(h, position);
             cout << " ";
-
             if (code == RIGHT && bomber[position.Y][position.X + 1] != 1) // right
-            {
-                // Проверяем, есть ли стена справа
-                if (bomber[position.Y][position.X + 1] != 1)
-                {
+            {    
                     position.X++; // изменение позиции ГГ вправо на 1 по иксу
-                }
             }
             else if (code == LEFT && bomber[position.Y][position.X - 1] != 1)
             {
-                // Проверяем, есть ли стена слева
-                if (bomber[position.Y][position.X - 1] != 1)
-                {
-                    position.X--;// изменение позиции ГГ влево на 1 по иксу
-                }
+                    position.X--;// изменение позиции ГГ влево на 1 по иксу            
             }
             else if (code == UP && bomber[position.Y - 1][position.X] != 1)
-            {
-                // Проверяем, есть ли стена сверху
-                if (bomber[position.Y - 1][position.X] != 1)
-                {
-                    position.Y--;// изменение позиции ГГ вверх на 1 по иксу
-                }
+            {              
+                    position.Y--;// изменение позиции ГГ вверх на 1 по иксу            
             }
             else if (code == DOWN && bomber[position.Y + 1][position.X] != 1)
             {
-                // Проверяем, есть ли стена снизу
-                if (bomber[position.Y + 1][position.X] != 1)
-                {
                     position.Y++;// изменение позиции ГГ вниз на 1 по иксу
-                }
             }
             else if (code == SPACE) { // Если нажата клавиша пробела
                 // Проверяем, что перед персонажем нет стены
@@ -122,23 +121,19 @@ public:
                     SetCursor(position.X + 1, position.Y, PURPUR);
                     cout << (char)254;
                 }
-            }
                 // Рисуем персонажа в новой позиции
-                SetCursor(position.X, position.Y, 12);
-                cout << (char)1;
-            
-            // Опционально можно добавить проверку на нажатие клавиши выхода, например ESCAPE
 
+            }
+            SetCursor(position.X, position.Y, 12);
+            cout << (char)1;
         }
     }
-
     void KeyBoard(int x, int y)
     {
         COORD position;
         position.X = x;
         position.Y = y;
     }
-
     //закрашиваем координаты
     void SetCursor(int x, int y, int color)
     {
@@ -165,7 +160,6 @@ public:
             }
         }
     }
-
     void AutomateWallNumberTwo()
     {
         for (int i = 2; i <= 18; i += 2) // идем по каждой второй строке
@@ -176,24 +170,6 @@ public:
             }
         }
     }
-
-    void WallNumberTThree(int x, int y) // 2 2
-    {
-        HANDLE h = GetStdHandle(-11);
-        COORD position;
-        for (int j = 0; j < 2; j++) // каждая ячейка это две строки по высоте
-        {
-            for (int i = 0; i < 3; i++) // каждая ячейка это 3 столбика
-            {
-                position.X = x * 3 + i; // 6 7 8    6 7 8 
-                position.Y = y * 2 + j; // 4 4 4    5 5 5
-                SetConsoleCursorPosition(h, position);
-                SetConsoleTextAttribute(h, 4);
-                cout << (char)178;
-            }
-        }
-    }
-
     //очистка памяти
     void FreeMemory() {
         for (int y = 0; y < height; y++) {
@@ -207,8 +183,11 @@ int main()
 {
     srand(time(NULL));
     BombermanGame b(63, 18);// вызов класса
-    b.Options();//скрываем курсор
+    b.Options();
+    b.Wall();
+    b.Enemy();
     b.AutomateWallNumberTwo();
-    b.Wall();//основные стны
     b.Person(3, 3);
+    //int code = _getch();
+    //cout << code << "\n";
 }
