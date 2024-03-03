@@ -21,7 +21,7 @@ public:
         {
             for (int x = 0; x < width; x++)
             {
-                bomber[y][x] = rand() % 5;
+                bomber[y][x] = rand() % 6;
             }
         }
     }
@@ -63,6 +63,10 @@ public:
                     bomber[y][x] = WALL;
                     SetCursor(x, y, 8);
                     cout << (char)178;
+                }
+                if (bomber[y][x] == 0)//коридор
+                {
+                    SetCursor(x, y, 0);
                 }
             }
         }
@@ -106,33 +110,40 @@ public:
             // Стираем персонажа в текущей позиции
             SetConsoleCursorPosition(h, position);
             cout << " ";
-            if (code == RIGHT && bomber[position.Y][position.X + 1] != WALL) // right
+            if (code == RIGHT) // right
             {
+                if(bomber[position.Y][position.X + 1] != WALL && bomber[position.Y][position.X + 1] != WALLTWO)
                     position.X++; // изменение позиции ГГ вправо на 1 по иксу
             }
-            else if (code == LEFT && bomber[position.Y][position.X - 1] != WALL)
+            else if (code == LEFT)
             {
+                if(bomber[position.Y][position.X - 1] != WALL && bomber[position.Y][position.X - 1] != WALLTWO)
                     position.X--;// изменение позиции ГГ влево на 1 по иксу            
             }
-            else if (code == UP && bomber[position.Y - 1][position.X] != WALL)
+            else if (code == UP)
             {              
-                    position.Y--;// изменение позиции ГГ вверх на 1 по иксу            
+                if(bomber[position.Y - 1][position.X] != WALL && bomber[position.Y - 1][position.X] != WALLTWO)
+                    position.Y--;// изменение позиции ГГ вверх на 1 по иксу          
             }
-            else if (code == DOWN && bomber[position.Y + 1][position.X] != WALL)
+            else if (code == DOWN)
             {
+                if(bomber[position.Y + 1][position.X] != WALL && bomber[position.Y + 1][position.X] != WALLTWO)
                     position.Y++;// изменение позиции ГГ вниз на 1 по иксу
             }
             // Если нажата клавиша пробела
-            else if (code == SPACE && bomber[position.Y][position.X + 1] != WALL)
+            else if (code == SPACE)
             {
-                    // Рисуем "бомбу" перед персонажем
+                if (bomber[position.Y][position.X + 1] != WALL && bomber[position.Y][position.X + 1] != WALLTWO)
+                {
                     SetCursor(position.X + 1, position.Y, PURPUR);
-                    cout << (char)254;
+                    cout << (char)254;   
+                    bomber[position.Y][position.X + 1] = HALL;
+                    SetCursor(position.X + 1, position.Y, 0);
+                }
             }
             SetCursor(position.X, position.Y, 12);
             cout << (char)1;
         }
-
     }
     void KeyBoard(int x, int y)
     {
@@ -177,6 +188,27 @@ public:
             }
         }
     }
+
+    void WallNumberThree()
+    {
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+               int r = rand() % 5; // 0...9
+               if (r == 1) // если выпадает не 0 (а число от 1 до 9) - врага убираем (вероятность 90%)
+               {
+                   bomber[y][x] = 1; // убираем врага
+               }
+               if (bomber[y][x] == 1)//стена
+               {
+                   SetCursor(x, y, 3);
+                   cout << (char)178;
+               }
+            }
+        }
+    }
+
     //очистка памяти
     void FreeMemory() 
     {
@@ -198,6 +230,7 @@ int main()
     b.Enemy();
     b.Wall();
     b.AutomateWallNumberTwo();
+    b.WallNumberThree();
     b.Person(2,2);
     
     //b.Person(2, 2);  
