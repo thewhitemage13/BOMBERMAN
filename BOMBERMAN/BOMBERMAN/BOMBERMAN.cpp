@@ -19,6 +19,7 @@ public:
     int bY;
     int health_person = 100;
     int count_of_coins = 0;
+    int count_of_coins_map = 0;
 
     void Generation() {//сделал генерацию для массива bomber
         for (int y = 0; y < height; y++) {
@@ -27,18 +28,19 @@ public:
             }
         }
     }
-    
+    //Health (loot)
     void Health() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (bomber[y][x] == 6) {
+                    count_of_coins_map++;
                     SetCursor(x, y, 14);
                     cout << (char)3;
                 }
             }
         }
     }
-
+    //Coins (loot)
     void Coins() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -165,8 +167,58 @@ public:
                         }
                     }
                 }
+
                 SetCursor(position.X, position.Y, 12);
                 cout << (char)1;
+
+                SetCursor(width + 1, 1, RED);
+                cout << "The number of coins in the gaim : ";
+                cout << count_of_coins_map;
+
+                if (position.X == width - 2 and position.Y == height - 2)
+                {
+                    MessageBoxA(0, "You found your way out of the maze!!!!", "You win!!!", MB_OK);
+                    break;
+                }
+
+                if (bomber[position.Y][position.X] == COINS)
+                {
+                    count_of_coins++;
+                    bomber[position.Y][position.X] = 0;
+                    SetCursor(width + 1, 2, YELLOW);
+                    cout << "Number of coins picked up: ";
+                    cout << count_of_coins;
+                }
+
+                if (count_of_coins == count_of_coins_map)
+                {
+                    MessageBoxA(0, "You have collected all the coins!!! ", "You win!!!", MB_OK);
+                    break;
+                }
+                ////////////////////////////////////////////////////////////////////////////////
+                if (bomber[position.Y][position.X] == ENEMY)
+                {
+                    health_person -= 20;
+                    bomber[position.Y][position.X] = 0;
+                    SetCursor(width + 1, 3, PURPUR);
+                    cout << "Hit points: ";
+                    cout << health_person;
+                    cout << " ";
+                }
+                if (bomber[position.Y][position.X] == HEALTH and health_person < 100)
+                {
+                    health_person += 20;
+                    bomber[position.Y][position.X] = 0;
+                    SetCursor(width + 1, 3, PURPUR);
+                    cout << "Hit points: ";
+                    cout << health_person;
+                    cout << " ";
+                }
+                if (health_person == 0)
+                {
+                    MessageBoxA(0, "You have run out of health!!!!", "You are dead!!!!", MB_OK);
+                    break;
+                }
             }
 
             else { // нажатия не было, двигаем врагов
