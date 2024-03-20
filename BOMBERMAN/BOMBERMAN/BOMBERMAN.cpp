@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include <conio.h> 
 using namespace std;
-enum MazeObject { HALL = 0, WALL = 1, WALLTWO = 2, WALLTHREE = 3, ENEMY = 4, COINS = 5};
+enum MazeObject { HALL = 0, WALL = 1, WALLTWO = 2, WALLTHREE = 3, ENEMY = 4, COINS = 5, HEALTH = 6 };//5 - coins, 6 - health, 
 enum Color { DARKGREEN = 2, YELLOW = 14, RED = 12, BLUE = 9, WHITE = 15, DARKYELLOW = 6, DARKRED = 4, PURPUR = 13, GREEN = 10 };
 enum KeyCode { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, UP = 72, DOWN = 80 };
 
@@ -17,11 +17,35 @@ public:
     bool bomb;
     int bX;
     int bY;
+    int health_person = 100;
+    int count_of_coins = 0;
 
     void Generation() {//сделал генерацию для массива bomber
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                bomber[y][x] = rand() % 6;
+                bomber[y][x] = rand() % 7;
+            }
+        }
+    }
+    
+    void Health() {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (bomber[y][x] == 6) {
+                    SetCursor(x, y, 14);
+                    cout << (char)3;
+                }
+            }
+        }
+    }
+
+    void Coins() {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (bomber[y][x] == 5) {
+                    SetCursor(x, y, 14);
+                    cout << ".";
+                }
             }
         }
     }
@@ -170,6 +194,7 @@ public:
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::ENEMY &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::COINS &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTHREE){
                         // стирание врага в старой позиции
                         COORD temp = enemy_positions[i];
@@ -189,6 +214,7 @@ public:
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::ENEMY &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::COINS &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTHREE){
                         // стирание врага в старой позиции
                         COORD temp = enemy_positions[i];
@@ -208,6 +234,7 @@ public:
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::ENEMY &&
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::COINS &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTHREE){
                         // стирание врага в старой позиции
                         COORD temp = enemy_positions[i];
@@ -226,6 +253,7 @@ public:
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::ENEMY &&
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::COINS &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTHREE){
                         // стирание врага в старой позиции
                         COORD temp = enemy_positions[i];
@@ -327,6 +355,8 @@ int main()
     BombermanGame b(61, 17);// вызов класса
     b.Options();
     b.Enemy();
+    b.Health();
+    b.Coins();
     b.Wall();
     b.AutomateWallNumberTwo();
     b.WallsInsideTheMapTwo();
