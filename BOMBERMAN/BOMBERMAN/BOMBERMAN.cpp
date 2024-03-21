@@ -3,7 +3,8 @@
 #include <Windows.h>
 #include <conio.h> 
 using namespace std;
-enum MazeObject { HALL = 0, WALL = 1, WALLTWO = 2, WALLTHREE = 3, ENEMY = 4, COINS = 5, HEALTH = 6 };//5 - coins, 6 - health, 
+
+enum MazeObject { HALL = 0, WALL = 1, WALLTWO = 2, WALLTHREE = 3, ENEMY = 4, COINS = 5, HEALTH = 6 };
 enum Color { DARKGREEN = 2, YELLOW = 14, RED = 12, BLUE = 9, WHITE = 15, DARKYELLOW = 6, DARKRED = 4, PURPUR = 13, GREEN = 10 };
 enum KeyCode { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, UP = 72, DOWN = 80 };
 
@@ -14,6 +15,7 @@ public:
     int height;
     int** bomber = nullptr;
     int count_of_bombs = 10;
+    int using_bombs = 0;
     bool bomb;
     int bX;
     int bY;
@@ -33,7 +35,6 @@ public:
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (bomber[y][x] == 6) {
-                    count_of_coins_map++;
                     SetCursor(x, y, 14);
                     cout << (char)3;
                 }
@@ -45,6 +46,7 @@ public:
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (bomber[y][x] == 5) {
+                    count_of_coins_map++;
                     SetCursor(x, y, 14);
                     cout << ".";
                 }
@@ -137,7 +139,6 @@ public:
                     bomb = true;
                     bX = position.X;
                     bY = position.Y;
-                    count_of_bombs--;
                 }
 
                 else if (code == 13) {
@@ -149,6 +150,7 @@ public:
 
                 else if (code == 103) {
                     if (bomb == true) {
+                        count_of_bombs--;
                         COORD bomb_position;
                         bomb_position.X = bX;
                         bomb_position.Y = bY;
@@ -159,9 +161,12 @@ public:
                                 int newY = bomb_position.Y + j;
 
                                 if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
-                                    bomber[newY][newX] = 0;
-                                    SetCursor(newX, newY, 0);
-                                    cout << ' ';
+                                    if (bomber[newY][newX] != WALL)
+                                    {
+                                        bomber[newY][newX] = 0;
+                                        SetCursor(newX, newY, 0);
+                                        cout << ' ';
+                                    }
                                 }
                             }
                         }
@@ -175,47 +180,54 @@ public:
                 cout << "The number of coins in the gaim : ";
                 cout << count_of_coins_map;
 
-                if (position.X == width - 2 and position.Y == height - 2)
-                {
-                    MessageBoxA(0, "You found your way out of the maze!!!!", "You win!!!", MB_OK);
+                if (position.X == width - 2 and position.Y == height - 2) {
+                    MessageBoxA(0, "You found your way out!!!!", "You win!!!", MB_OK);
                     break;
                 }
 
-                if (bomber[position.Y][position.X] == COINS)
-                {
+                if (bomber[position.Y][position.X] == COINS) {
                     count_of_coins++;
                     bomber[position.Y][position.X] = 0;
-                    SetCursor(width + 1, 2, YELLOW);
+                    SetCursor(width + 1, 3, YELLOW);
                     cout << "Number of coins picked up: ";
                     cout << count_of_coins;
                 }
 
-                if (count_of_coins == count_of_coins_map)
-                {
+                if (count_of_coins == count_of_coins_map) {
                     MessageBoxA(0, "You have collected all the coins!!! ", "You win!!!", MB_OK);
                     break;
                 }
                 ////////////////////////////////////////////////////////////////////////////////
-                if (bomber[position.Y][position.X] == ENEMY)
-                {
+                if (bomber[position.Y][position.X] == ENEMY) {
                     health_person -= 20;
                     bomber[position.Y][position.X] = 0;
-                    SetCursor(width + 1, 3, PURPUR);
+                    SetCursor(width + 1, 5, PURPUR);
                     cout << "Hit points: ";
                     cout << health_person;
                     cout << " ";
                 }
-                if (bomber[position.Y][position.X] == HEALTH and health_person < 100)
-                {
+                if (bomber[position.Y][position.X] == HEALTH and health_person < 100) {
                     health_person += 20;
                     bomber[position.Y][position.X] = 0;
-                    SetCursor(width + 1, 3, PURPUR);
+                    SetCursor(width + 1, 5, PURPUR);
                     cout << "Hit points: ";
                     cout << health_person;
                     cout << " ";
                 }
-                if (health_person == 0)
-                {
+
+                SetCursor(width + 1, 7, YELLOW);
+                cout << "Number of bombs: ";
+                cout << count_of_bombs;
+                cout << " ";
+
+                if (code == 103) {
+                    SetCursor(width + 1, 7, YELLOW);
+                    cout << "Number of bombs: ";
+                    cout << count_of_bombs;
+                    cout << " ";
+                }
+
+                if (health_person == 0) {
                     MessageBoxA(0, "You have run out of health!!!!", "You are dead!!!!", MB_OK);
                     break;
                 }
@@ -223,11 +235,9 @@ public:
 
             else { // нажатия не было, двигаем врагов
                 Sleep(15);
-                ///////////////////////////////////////////////////////////////
                 // движение врагов
                 COORD enemy_positions[100]; // массив который хранит координаты врагов
                 int enemy_count = 0; // реальное количество врагов на данный момент после шага ГГ
-
                 // перебор всех ячеек которые есть в лабиринте
                 for (int y = 0; y < height; y++) {// перебор строк
                     for (int x = 0; x < width; x++) { // перебор столбцов
@@ -240,14 +250,15 @@ public:
                     }
                 }
                 // перебор всех врагов
-                for (int i = 0; i < enemy_count; i++){
+                for (int i = 0; i < enemy_count; i++) {
                     int r = rand() % 100; // 0-left, 1-right, 2-up, 3-down
                     if (r == LEFT &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::ENEMY &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::COINS &&
-                        bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTHREE){
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::HEALTH &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTHREE) {
                         // стирание врага в старой позиции
                         COORD temp = enemy_positions[i];
                         SetConsoleCursorPosition(h, temp);
@@ -267,7 +278,8 @@ public:
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::ENEMY &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::COINS &&
-                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTHREE){
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::HEALTH &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTHREE) {
                         // стирание врага в старой позиции
                         COORD temp = enemy_positions[i];
                         SetConsoleCursorPosition(h, temp);
@@ -280,14 +292,15 @@ public:
                         SetConsoleTextAttribute(h, Color::RED);
                         cout << (char)224;
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] = MazeObject::ENEMY;
-                         }
+                    }
 
                     else if (r == UP &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::ENEMY &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::COINS &&
-                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTHREE){
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::HEALTH &&
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
                         // стирание врага в старой позиции
                         COORD temp = enemy_positions[i];
                         SetConsoleCursorPosition(h, temp);
@@ -300,13 +313,14 @@ public:
                         SetConsoleTextAttribute(h, Color::RED);
                         cout << (char)224;
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] = MazeObject::ENEMY;
-                         }
+                    }
                     else if (r == DOWN &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::ENEMY &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::COINS &&
-                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTHREE){
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::HEALTH &&
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
                         // стирание врага в старой позиции
                         COORD temp = enemy_positions[i];
                         SetConsoleCursorPosition(h, temp);
@@ -319,7 +333,7 @@ public:
                         SetConsoleTextAttribute(h, Color::RED);
                         cout << (char)224;
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] = MazeObject::ENEMY;
-                         }
+                    }
                 }
             }
         }
@@ -354,7 +368,7 @@ public:
         }
     }
 
-    void AutomateWallNumberTwo(){
+    void AutomateWallNumberTwo() {
         for (int i = 2; i <= 28; i += 2) {// идем по каждой второй строке
             for (int j = 2; j <= 14; j += 2) {// идем по каждой второй колонке
                 WallsInsideTheMapOne(i, j); // вызываем метод вывода стены с номером два
@@ -362,10 +376,10 @@ public:
         }
     }
 
-    void WallsInsideTheMapTwo(){
+    void WallsInsideTheMapTwo() {
         for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < width; x++){
+            for (int x = 0; x < width; x++) {
                 int r = rand() % 10; // 0...9
                 if (r == 1) {// если выпадает не 0 (а число от 1 до 9) - врага убираем (вероятность 90%)
                     bomber[y][x] = 1; // убираем врага
@@ -378,9 +392,9 @@ public:
         }
     }
 
-    void WallsInsideTheMapThree(){
-        for (int y = 0; y < height; y++){
-            for (int x = 0; x < width; x++){
+    void WallsInsideTheMapThree() {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 int r = rand() % 10; // 0...9
                 if (r == 1 && bomber[y][x] != WALL) { // если выпадает не 0 (а число от 1 до 9) - врага убираем (вероятность 90%)
                     bomber[y][x] = WALLTHREE; // убираем врага
@@ -393,8 +407,8 @@ public:
         }
     }
     //очистка памяти
-    void FreeMemory(){
-        for (int y = 0; y < height; y++){
+    void FreeMemory() {
+        for (int y = 0; y < height; y++) {
             delete[] bomber[y];
         }
         delete[] bomber;
@@ -405,6 +419,7 @@ int main()
 {
     srand(time(NULL));
     BombermanGame b(61, 17);// вызов класса
+    system("title Bomberman");
     b.Options();
     b.Enemy();
     b.Health();
