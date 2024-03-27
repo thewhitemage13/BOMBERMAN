@@ -4,7 +4,7 @@
 #include <conio.h> 
 using namespace std;
 
-enum MazeObject { HALL = 0, WALL = 1, WALLTWO = 2, WALLTHREE = 3, ENEMY = 4, COINS = 5, HEALTH = 6 };
+enum MazeObject { HALL = 0, WALL = 1, WALLTWO = 2, WALLTHREE = 3, ENEMY = 4, BOMB = 5, HEALTH = 6 };
 enum Color { DARKGREEN = 2, YELLOW = 14, RED = 12, BLUE = 9, WHITE = 15, DARKYELLOW = 6, DARKRED = 4, PURPUR = 13, GREEN = 10 };
 enum KeyCode { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, UP = 72, DOWN = 80 };
 
@@ -29,29 +29,6 @@ public:
             }
         }
     }
-    ////Health (loot)
-    //void Health() {
-    //    for (int y = 0; y < height; y++) {
-    //        for (int x = 0; x < width; x++) {
-    //            if (bomber[y][x] == 6) {
-    //                SetCursor(x, y, 14);
-    //                cout << (char)3;
-    //            }
-    //        }
-    //    }
-    //}
-    ////Coins (loot)
-    //void Coins() {
-    //    for (int y = 0; y < height; y++) {
-    //        for (int x = 0; x < width; x++) {
-    //            if (bomber[y][x] == 5) {
-    //                count_of_coins_map++;
-    //                SetCursor(x, y, 14);
-    //                cout << ".";
-    //            }
-    //        }
-    //    }
-    //}
 
     BombermanGame(int w, int h) : width(w), height(h) {
         bomber = new int* [height];
@@ -164,9 +141,9 @@ public:
                                         int a = rand() % 2 + 5;
                                         if (bomber[newY][newX] == WALLTHREE) {
                                             if (a == 5) {
-                                                bomber[newY][newX] = COINS;
-                                                SetCursor(newX, newY, 14);
-                                                cout << ".";
+                                                bomber[newY][newX] = BOMB;
+                                                SetCursor(newX, newY, PURPUR);
+                                                cout << (char)254;
                                             }
                                             if (a == 6) {
                                                 bomber[newY][newX] = HEALTH;
@@ -194,18 +171,6 @@ public:
                     break;
                 }
 
-                SetCursor(width + 1, 2, YELLOW);
-                cout << "Number of coins picked up: ";
-                cout << count_of_coins;
-
-                if (bomber[position.Y][position.X] == COINS) {
-                    count_of_coins++;
-                    bomber[position.Y][position.X] = 0;
-                    SetCursor(width + 1, 2, YELLOW);
-                    cout << "Number of coins picked up: ";
-                    cout << count_of_coins;
-                }
-
                 SetCursor(width + 1, 4, PURPUR);
                 cout << "Hit points: ";
                 cout << health_person;
@@ -218,6 +183,7 @@ public:
                     cout << health_person;
                     cout << " ";
                 }
+
                 if (bomber[position.Y][position.X] == HEALTH and health_person < 100) {
                     health_person += 20;
                     bomber[position.Y][position.X] = 0;
@@ -233,6 +199,16 @@ public:
                 cout << " ";
 
                 if (code == 103) {
+                    SetCursor(width + 1, 6, YELLOW);
+                    cout << "Number of bombs: ";
+                    cout << count_of_bombs;
+                    cout << " ";
+                }
+
+                if (bomber[position.Y][position.X] == BOMB and count_of_bombs < 10)
+                {
+                    count_of_bombs++;
+                    bomber[position.Y][position.X] = 0;
                     SetCursor(width + 1, 6, YELLOW);
                     cout << "Number of bombs: ";
                     cout << count_of_bombs;
@@ -268,7 +244,7 @@ public:
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::ENEMY &&
-                        bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::COINS &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::BOMB &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::HEALTH &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTHREE) {
                         // стирание врага в старой позиции
@@ -289,7 +265,7 @@ public:
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::ENEMY &&
-                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::COINS &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::BOMB &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::HEALTH &&
                         bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTHREE) {
                         // стирание врага в старой позиции
@@ -310,7 +286,7 @@ public:
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::ENEMY &&
-                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::COINS &&
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::BOMB &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::HEALTH &&
                         bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
                         // стирание врага в старой позиции
@@ -330,7 +306,7 @@ public:
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALL &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::ENEMY &&
-                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::COINS &&
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::BOMB &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::HEALTH &&
                         bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
                         // стирание врага в старой позиции
