@@ -11,6 +11,27 @@ enum Color { DARKGREEN = 2, YELLOW = 14, RED = 12, BLUE = 9, WHITE = 15, DARKYEL
 
 enum KeyCode { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, UP = 72, DOWN = 80 };
 
+// Класс приложение
+class Application {
+public:
+    HANDLE h;
+    CONSOLE_CURSOR_INFO ci;
+
+    void Applicatioon() {
+        h = GetStdHandle(STD_OUTPUT_HANDLE);
+        ci.bVisible = false;
+        ci.dwSize = 100;
+        SetConsoleCursorInfo(h, &ci);
+    }
+};
+
+class Menu {
+public:
+    // Здесь добавить меню
+};
+
+
+
 class Maze {
 public:
     int width;
@@ -57,7 +78,7 @@ private:
 public:
     HANDLE h;
 
-    Wall(){}
+    Wall() {}
 
     // Конструктор, инициализирующий параметры стен
     Wall(HANDLE handle, int width, int height) : h(handle), width(width), height(height) {
@@ -208,6 +229,8 @@ public:
     int height;
     int width;
 
+    BombermanGame(){}
+
     // Метод для генерации начального состояния игры
     void Generation() {
         for (int y = 0; y < height; y++) {
@@ -227,12 +250,12 @@ public:
     }
 
     // Метод для перемещения игрока
-    void Person(int x, int y) {
+    void Person(int x, int y) { // Рисует персонажа в указанных координатах
         COORD position;
         position.X = x;
         position.Y = y;
         wall.SetCursor(x, y, 12);
-        cout << (char)1;
+        cout << (char)1; // Можно использовать любой другой символ или строку для отображения персонажа
 
         while (true) {
             if (_kbhit()) {
@@ -287,7 +310,7 @@ public:
                                             }
                                             if (a == 6) {
                                                 bomber[newY][newX] = HEALTH;
-                                                wall.SetCursor(newX, newY, YELLOW);
+                                                wall.SetCursor(newX, newY, 14);
                                                 cout << (char)3;
                                             }
                                         }
@@ -359,9 +382,7 @@ public:
                 COORD enemy_positions[100];
                 int enemy_count = 0;
                 for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width;
-
-                        x++) {
+                    for (int x = 0; x < width; x++) {
                         if (bomber[y][x] == MazeObject::ENEMY) {
                             enemy_positions[enemy_count].X = x;
                             enemy_positions[enemy_count].Y = y;
@@ -390,43 +411,89 @@ public:
                         bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] = MazeObject::ENEMY;
                     }
 
+                    else if (r == RIGHT &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALL &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTWO &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::ENEMY &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::BOMB &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::HEALTH &&
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTHREE) {
+                        // стирание врага в старой позиции
+                        COORD temp = enemy_positions[i];
+                        SetConsoleCursorPosition(h, temp);
+                        cout << " ";
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
+                        // перемещаем врага в новую позицию
+                        temp.X = enemy_positions[i].X + 1;
+                        temp.Y = enemy_positions[i].Y;
+                        SetConsoleCursorPosition(h, temp);
+                        SetConsoleTextAttribute(h, Color::RED);
+                        cout << (char)224;
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] = MazeObject::ENEMY;
+                    }
+                    else if (r == UP &&
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALL &&
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::ENEMY &&
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::BOMB &&
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::HEALTH &&
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
+                        // стирание врага в старой позиции
+                        COORD temp = enemy_positions[i];
+                        SetConsoleCursorPosition(h, temp);
+                        cout << " ";
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
+                        // перемещаем врага в новую позицию
+                        temp.X = enemy_positions[i].X;
+                        temp.Y = enemy_positions[i].Y - 1;
+                        SetConsoleCursorPosition(h, temp);
+                        SetConsoleTextAttribute(h, Color::RED);
+                        cout << (char)224;
+                        bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] = MazeObject::ENEMY;
+                    }
+                    else if (r == DOWN &&
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALL &&
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::ENEMY &&
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::BOMB &&
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::HEALTH &&
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
+                        // стирание врага в старой позиции
+                        COORD temp = enemy_positions[i];
+                        SetConsoleCursorPosition(h, temp);
+                        cout << " ";
+                        bomber[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
+                        // перемещаем врага в новую позицию
+                        temp.X = enemy_positions[i].X;
+                        temp.Y = enemy_positions[i].Y + 1;
+                        SetConsoleCursorPosition(h, temp);
+                        SetConsoleTextAttribute(h, Color::RED);
+                        cout << (char)224;
+                        bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] = MazeObject::ENEMY;
+                    }
                 }
             }
         }
     }
-};
-
-// Класс приложение
-class Application {
-public:
-    HANDLE h;
-
-    // Конструктор для инициализации приложения
-    Application() {
-        h = GetStdHandle(STD_OUTPUT_HANDLE);
-    }
-
-    // Метод для установки опций консоли
-    void SetConsoleOptions() {
-        CONSOLE_CURSOR_INFO ci;
-        ci.bVisible = false;
-        ci.dwSize = 100;
-        SetConsoleCursorInfo(h, &ci);
+    void KeyBoard(int x, int y) {
+        COORD position;
+        position.X = x;
+        position.Y = y;
     }
 };
 
-class Menu {
-public:
-    // Здесь добавить меню
-};
 
 int main() {
     srand(time(NULL));
     Application app;
-    app.SetConsoleOptions();
+    app.Applicatioon();
 
     Maze maze(61, 17);
     maze.GenerateLayout();
+    system("title Bomberman");
+
+    Enemy enemy(GetStdHandle(STD_OUTPUT_HANDLE));
+    enemy.GenerateEnemies(maze.layout, maze.width, maze.height);
 
     Wall wall(GetStdHandle(STD_OUTPUT_HANDLE), maze.width, maze.height);
     wall.DrawWalls(maze.layout, maze.width, maze.height);
@@ -434,11 +501,8 @@ int main() {
     wall.WallsInsideTheMapTwo(maze.layout, maze.width, maze.height);
     wall.WallsInsideTheMapThree(maze.layout, maze.width, maze.height);
 
-    Enemy enemy(GetStdHandle(STD_OUTPUT_HANDLE));
-    enemy.GenerateEnemies(maze.layout, maze.width, maze.height);
+    BombermanGame bomber;
 
-    BombermanGame bomber(GetStdHandle(STD_OUTPUT_HANDLE), maze.width, maze.height);
-    bomber.Person(2, 2);
 
     return 0;
 };
