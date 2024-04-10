@@ -599,7 +599,7 @@ public:
     void WallsInsideTheMapThree() {
         int** bomber = maze->GetBomber();
         for (int y = 0; y < maze->GetHeight(); y++) {
-            for (int x = 0; x < maze->GetHeight(); x++) {
+            for (int x = 0; x < maze->GetWidth(); x++) {
                 int r = rand() % 10; // 0...9
                 if (r == 1 && bomber[y][x] != WALL) { // если выпадает не 0 (а число от 1 до 9) - врага убираем (вероятность 90%)
                     bomber[y][x] = WALLTHREE; // убираем врага
@@ -631,7 +631,7 @@ int main()
     Bomber b(&maze, &bomb, &enemy);
     Options();
     enemy.EnemyGeneration();
-    //w.WallGenerate();
+    w.WallGenerate();
     //w.AutomateWallNumberTwo();
     //w.WallsInsideTheMapTwo();
     //w.WallsInsideTheMapThree();
