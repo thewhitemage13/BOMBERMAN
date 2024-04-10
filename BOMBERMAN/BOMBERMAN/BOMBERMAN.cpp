@@ -8,9 +8,36 @@ enum MazeObject { HALL = 0, WALL = 1, WALLTWO = 2, WALLTHREE = 3, ENEMY = 4, BOM
 enum Color { DARKGREEN = 2, YELLOW = 14, RED = 12, BLUE = 9, WHITE = 15, DARKYELLOW = 6, DARKRED = 4, PURPUR = 13, GREEN = 10 };
 enum KeyCode { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, UP = 72, DOWN = 80 };
 
+HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+void SetCursor(int x, int y, int color) {
+    COORD position;
+    position.X = x;
+    position.Y = y;
+    //cout << position.Y << "\n";
+    //cout << position.X << "\n";
+    SetConsoleCursorPosition(h, position);
+    SetConsoleTextAttribute(h, color);
+}
+
+void KeyBoard(int x, int y) {
+    COORD position;
+    position.X = x;
+    position.Y = y;
+}
+
+void Options() {
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    // размер окна - 130х50 символов
+    CONSOLE_CURSOR_INFO ci; // скрытие курсора
+    ci.bVisible = false; // курсор не видно
+    ci.dwSize = 100; // на самом деле, не важно что сюда писать - подходит любое значение от 1 до 100 (рамер курсора в процентах относительно клетки)
+    SetConsoleCursorInfo(h, &ci); // применить настройки
+}
+
 class Maze {
 private:
-    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
     int width;
     int height;
     int** bomber = nullptr;
@@ -63,15 +90,7 @@ public:
         Generation();//метод находится в КСП для того чтоб генерация была доступна для всех мктодов класса
     }
 
-    void SetCursor(int x, int y, int color) {
-        COORD position;
-        position.X = x;
-        position.Y = y;
-        //cout << position.Y << "\n";
-        //cout << position.X << "\n";
-        SetConsoleCursorPosition(h, position);
-        SetConsoleTextAttribute(h, color);
-    }
+    
 
     void SetWidth(int width) {
         this->width = width;
@@ -89,20 +108,7 @@ public:
         return height;
     }
 
-    void KeyBoard(int x, int y) {
-        COORD position;
-        position.X = x;
-        position.Y = y;
-    }
-
-    void Options() {
-        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-        // размер окна - 130х50 символов
-        CONSOLE_CURSOR_INFO ci; // скрытие курсора
-        ci.bVisible = false; // курсор не видно
-        ci.dwSize = 100; // на самом деле, не важно что сюда писать - подходит любое значение от 1 до 100 (рамер курсора в процентах относительно клетки)
-        SetConsoleCursorInfo(h, &ci); // применить настройки
-    }
+    
 
     ~Maze() {
         if (bomber != nullptr) {
@@ -136,7 +142,7 @@ public:
                     bomber[y][x] = 0; // убираем врага
                 }
                 if (bomber[y][x] == ENEMY) {
-                    maze->SetCursor(x, y, RED);
+                    SetCursor(x, y, RED);
                     cout << (char)224;
                 }
             }
@@ -367,7 +373,7 @@ public:
         position.X = x;
         position.Y = y;
         
-        maze->SetCursor(x, y, 12);
+        SetCursor(x, y, 12);
         cout << (char)1; // Можно использовать любой другой символ или строку для отображения персонажа
 
         while (true) {
@@ -400,7 +406,7 @@ public:
 
                 else if (code == 13 && bomb->GetCountOfBomb() != 0) {
                     if (bomb->GetBomb() == true) {
-                        maze->SetCursor(bomb->GetbX(), bomb->GetbY(), PURPUR);
+                        SetCursor(bomb->GetbX(), bomb->GetbY(), PURPUR);
                         cout << (char)254;
                     }
                 }
@@ -423,18 +429,19 @@ public:
                                         if (maze->GetBomber()[newY][newX] == WALLTHREE) {
                                             if (a == 5) {
                                                 maze->GetBomber()[newY][newX] = BOMB;
-                                                maze->SetCursor(newX, newY, PURPUR);
+                                                SetCursor(newX, newY, PURPUR);
                                                 cout << (char)254;
                                             }
+
                                             if (a == 6) {
                                                 maze->GetBomber()[newY][newX] = HEALTH;
-                                                maze->SetCursor(newX, newY, 14);
+                                                SetCursor(newX, newY, 14);
                                                 cout << (char)3;
                                             }
                                         }
                                         else {
                                             maze->GetBomber()[newY][newX] = 0;
-                                            maze->SetCursor(newX, newY, 0);
+                                            SetCursor(newX, newY, 0);
                                             cout << ' ';
                                         }
                                     }
@@ -444,7 +451,7 @@ public:
                     }
                 }
 
-                maze->SetCursor(position.X, position.Y, 12);
+                SetCursor(position.X, position.Y, 12);
                 cout << (char)1;
 
                 if (position.X == maze->GetWidth() - 2 and position.Y == maze->GetHeight() - 2) {
@@ -452,34 +459,35 @@ public:
                     break;
                 }
 
-                maze->SetCursor(maze->GetWidth() + 1, 1, PURPUR);
+                SetCursor(maze->GetWidth() + 1, 1, PURPUR);
                 cout << "Hit points: ";
                 cout << health_person;
 
                 if (maze->GetBomber()[position.Y][position.X] == ENEMY) {
                     health_person -= 20;
                     maze->GetBomber()[position.Y][position.X] = 0;
-                    maze->SetCursor(maze->GetWidth() + 1, 1, PURPUR);
-                    cout << "Hit points: ";
-                    cout << health_person;
-                    cout << " ";
-                }
-                if (maze->GetBomber()[position.Y][position.X] == HEALTH and health_person < 100) {
-                    health_person += 20;
-                    maze->GetBomber()[position.Y][position.X] = 0;
-                    maze->SetCursor(maze->GetWidth() + 1, 1, PURPUR);
+                    SetCursor(maze->GetWidth() + 1, 1, PURPUR);
                     cout << "Hit points: ";
                     cout << health_person;
                     cout << " ";
                 }
 
-                maze->SetCursor(maze->GetWidth() + 1, 3, YELLOW);
+                if (maze->GetBomber()[position.Y][position.X] == HEALTH and health_person < 100) {
+                    health_person += 20;
+                    maze->GetBomber()[position.Y][position.X] = 0;
+                    SetCursor(maze->GetWidth() + 1, 1, PURPUR);
+                    cout << "Hit points: ";
+                    cout << health_person;
+                    cout << " ";
+                }
+
+                SetCursor(maze->GetWidth() + 1, 3, YELLOW);
                 cout << "Number of bombs: ";
                 cout << bomb->GetCountOfBomb();
                 cout << " ";
 
                 if (code == 103) {
-                    maze->SetCursor(maze->GetWidth() + 1, 3, YELLOW);
+                    SetCursor(maze->GetWidth() + 1, 3, YELLOW);
                     cout << "Number of bombs: ";
                     cout << bomb->GetCountOfBomb();
                     cout << " ";
@@ -489,7 +497,7 @@ public:
                     bomb->SetPlusBomb(1);
                     
                     maze->GetBomber()[position.Y][position.X] = 0;
-                    maze->SetCursor(maze->GetWidth() + 1, 3, YELLOW);
+                    SetCursor(maze->GetWidth() + 1, 3, YELLOW);
                     cout << "Number of bombs: ";
                     cout << bomb->GetCountOfBomb();
                     cout << " ";
@@ -506,10 +514,8 @@ public:
             }
         }
     }
+
     ~Bomber() {
-        if (maze != nullptr) {
-            delete maze;
-        }
         if (enemy != nullptr) {
             delete enemy;
         }
@@ -539,11 +545,11 @@ public:
         for (int y = 0; y < maze->GetHeight(); y++) {
             for (int x = 0; x < maze->GetWidth(); x++) {
                 if (x == 0 || y == 0 || x == maze->GetWidth() - 1 || y == maze->GetHeight() - 1) {
-                    maze->SetCursor(x, y, 8);
+                    SetCursor(x, y, 8);
                     cout << (char)178;
                 }
                 if (bomber[y][x] == 0) {//коридор
-                    maze->SetCursor(x, y, 0);
+                    SetCursor(x, y, 0);
                 }
             }
         }
@@ -583,7 +589,7 @@ public:
                     bomber[y][x] = 1; // убираем врага
                 }
                 if (bomber[y][x] == 1) {//стена
-                    maze->SetCursor(x, y, 3);
+                    SetCursor(x, y, 3);
                     cout << (char)178;
                 }
             }
@@ -599,7 +605,7 @@ public:
                     bomber[y][x] = WALLTHREE; // убираем врага
                 }
                 if (bomber[y][x] == WALLTHREE) {//стена
-                    maze->SetCursor(x, y, 7);
+                    SetCursor(x, y, 7);
                     cout << (char)178;
                 }
             }
@@ -623,11 +629,11 @@ int main()
     Enemy enemy(&maze);
 
     Bomber b(&maze, &bomb, &enemy);
-    maze.Options();
+    Options();
     enemy.EnemyGeneration();
-    w.WallGenerate();
-    w.AutomateWallNumberTwo();
-    w.WallsInsideTheMapTwo();
-    w.WallsInsideTheMapThree();
+    //w.WallGenerate();
+    //w.AutomateWallNumberTwo();
+    //w.WallsInsideTheMapTwo();
+    //w.WallsInsideTheMapThree();
     b.Person(2, 2);
 }
