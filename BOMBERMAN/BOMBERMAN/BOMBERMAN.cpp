@@ -67,6 +67,8 @@ public:
         COORD position;
         position.X = x;
         position.Y = y;
+        cout << position.Y << "\n";
+        cout << position.X << "\n";
         SetConsoleCursorPosition(h, position);
         SetConsoleTextAttribute(h, color);
     }
@@ -320,7 +322,7 @@ private:
     int count_of_coins = 0;
 public:
     
-    Bomber(Bomb* b, Enemy* e) : bomb(b), enemy(e) {
+    Bomber (Maze* m, Bomb* b, Enemy*e ) : maze(m), bomb(b), enemy(e) {
         SetHealthPerson(100);
         SetCountOfCoins(0);
     }
@@ -355,6 +357,12 @@ public:
     }
 
     void Person(int x, int y) {// Рисует персонажа в указанных координатах
+
+        if (maze == nullptr || bomb == nullptr || enemy == nullptr) {
+            // Обработка ошибки или выход из метода
+            cout << "ERRRRRROOORRRRRR\n";
+            return;
+        }
         COORD position;
         position.X = x;
         position.Y = y;
@@ -504,7 +512,7 @@ public:
             delete maze;
         }
         if (enemy != nullptr) {
-            delete maze;
+            delete enemy;
         }
         if (bomb != nullptr) {
             delete bomb;
@@ -606,104 +614,24 @@ public:
     }
 };
 
-//class Menu {
-//    const int NUM_MENU_ITEMS = 3;
-//    int ActiveMenuItem = 0; // Выбранный пункт меню
-//    int ch = 0; // Хранение нажатой клавиши
-//    bool exit = false; // для выхода из цикла
-//
-//public:
-//    void gotoxy(int x, int y) {
-//        COORD coord;
-//        coord.X = x;
-//        coord.Y = y;
-//        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-//    }
-//
-//    // Само меню основа
-//    void Menushka() {
-//        system("cls");
-//
-//        while (!exit) {
-//            ShowMenu();
-//            gotoxy(0, ActiveMenuItem);
-//
-//            ch = _getch();
-//            if (ch == 224)
-//                ch = _getch();
-//
-//            switch (ch) {
-//            case 27: // Стрелка вверх
-//                exit = true;
-//                break;
-//            case 72: // Стрелка вверх
-//                ActiveMenuItem = (ActiveMenuItem - 1 + NUM_MENU_ITEMS) % NUM_MENU_ITEMS;
-//                break;
-//            case 80: //Стрелка вниз
-//                ActiveMenuItem = (ActiveMenuItem + 1) % NUM_MENU_ITEMS;
-//                break;
-//            case 13: // Клавиша Энтер
-//                if (ActiveMenuItem == 0) {
-//                    system("cls"); // !!!!!!!!!!!!!!!!!!!
-//                    cout << "NEW GAME\n";
-//                    Sleep(1000);
-//                    return;
-//                }
-//                else if (ActiveMenuItem == 1) { // Об авторе кнопка
-//                    AboutAuthors();
-//                }
-//                else if (ActiveMenuItem == 2) { // Кнопка выход из игры
-//                    ::exit(0);
-//                }
-//                break;
-//            }
-//        }
-//    }
-//
-//    // Вывод лого
-//    void ShowLogo() {
-//        gotoxy(50, 15);
-//        cout << "BOMBERMAN!!!" << "\n";
-//        Sleep(1000);
-//    }
-//
-//    // Вывод меню
-//    void ShowMenu() {
-//        system("cls");
-//        cout << "Start game" << "\n";
-//        cout << "About authors" << "\n";
-//        cout << "Exit" << "\n";
-//    }
-//
-//    // Про нас
-//    void AboutAuthors() {
-//        system("cls");
-//        cout << "Bienoieva Malika" << "\n" << "Lolo Mukhammed\n\n\n\n";
-//        system("pause");
-//    }
-//};
-
 int main()
 {
     srand(time(NULL));
     system("title Bomberman");
     Maze maze(61, 17);
     Bomb bomb;
- ///*   Menu menu;*/
- //   menu.ShowLogo();
- //   menu.Menushka();
     Wall w(&maze);
     Enemy enemy(&maze);
     //////////////////////
 
-    Bomber b(&bomb, &enemy);
+    Bomber b(&maze, &bomb, &enemy);
 
-    maze.Options();
+    //maze.Options();
     enemy.EnemyGeneration();
-    w.WallGenerate();
-    w.AutomateWallNumberTwo();
-    w.WallsInsideTheMapTwo();
-    w.WallsInsideTheMapThree();
+    //w.WallGenerate();
+    //w.AutomateWallNumberTwo();
+    //w.WallsInsideTheMapTwo();
+    //w.WallsInsideTheMapThree();
 
     b.Person(2, 2);
 }
