@@ -37,7 +37,6 @@ void Options() {
 
 class Maze {
 private:
-
     int width;
     int height;
     int** bomber = nullptr;
@@ -151,6 +150,8 @@ public:
 
     void Joystick() {
         int** bomber = maze->GetBomber();
+        int width = maze->GetWidth();
+        int height = maze->GetHeight();
         Sleep(15);
         // движение врагов
         COORD enemy_positions[100]; // массив который хранит координаты врагов
@@ -632,8 +633,8 @@ int main()
     Options();
     enemy.EnemyGeneration();
     w.WallGenerate();
-    //w.AutomateWallNumberTwo();
-    //w.WallsInsideTheMapTwo();
-    //w.WallsInsideTheMapThree();
+    w.AutomateWallNumberTwo();
+    w.WallsInsideTheMapTwo();
+    w.WallsInsideTheMapThree();
     b.Person(2, 2);
 }
