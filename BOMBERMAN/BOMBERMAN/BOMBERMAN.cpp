@@ -8,16 +8,6 @@ enum MazeObject { HALL = 0, WALL = 1, WALLTWO = 2, WALLTHREE = 3, ENEMY = 4, BOM
 enum Color { DARKGREEN = 2, YELLOW = 14, RED = 12, BLUE = 9, WHITE = 15, DARKYELLOW = 6, DARKRED = 4, PURPUR = 13, GREEN = 10 };
 enum KeyCode { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, UP = 72, DOWN = 80 };
 
-class Menu;
-class Bomb;
-class Maze;
-class Application;
-class Enemy;
-class Bomber;
-class MazeObj;
-class Wall;
-class Game;
-
 class Maze {
 private:
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -35,28 +25,26 @@ public:
         width = original.width;
         height = original.height;
 
-        bomber = new int* [height];
-        for (int i = 0; i < height; i++) {
-            bomber[i] = new int[width];
-        }
+        if (original.bomber != nullptr) {
+            bomber = new int* [height];
+            for (int i = 0; i < height; i++) {
+                bomber[i] = new int[width];
+            }
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                bomber[y][x] = original.bomber[y][x];
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    bomber[y][x] = original.bomber[y][x];
+                }
             }
         }
     }
 
-    HANDLE GetH() {
-        return h;
+    int** GetBomber() const {
+        return bomber;
     }
 
-    Maze(int w, int h) : width(w), height(h) {
-        bomber = new int* [height];
-        for (int i = 0; i < height; i++) {
-            bomber[i] = new int[width];
-        }
-        Generation();//метод находится в КСП для того чтоб генерация была доступна для всех мктодов класса
+    HANDLE GetH() {
+        return h;
     }
 
     void Generation() {//сделал генерацию для массива bomber
@@ -67,8 +55,12 @@ public:
         }
     }
 
-    int** GetBomber() const {
-        return bomber;
+    Maze(int w, int h) : width(w), height(h) {
+        bomber = new int* [height];
+        for (int i = 0; i < height; i++) {
+            bomber[i] = new int[width];
+        }
+        Generation();//метод находится в КСП для того чтоб генерация была доступна для всех мктодов класса
     }
 
     void SetCursor(int x, int y, int color) {
@@ -101,13 +93,6 @@ public:
         position.Y = y;
     }
 
-    void FreeMemory() {
-        for (int y = 0; y < height; y++) {
-            delete[] bomber[y];
-        }
-        delete[] bomber;
-    }
-
     void Options() {
         HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
         // размер окна - 130х50 символов
@@ -118,27 +103,29 @@ public:
     }
 
     ~Maze() {
-        FreeMemory();
+        if (bomber != nullptr) {
+            for (int y = 0; y < height; y++) {
+                delete[] bomber[y];
+            }
+            delete[] bomber;
+        }
     }
 };
 
 class Enemy {
 private:
-    Maze* maze = nullptr;
+    Maze* maze;
 public:
 
-    Enemy(Maze* m) : maze(m) {}
-
-    Enemy(const Enemy& original) {
-        if (original.maze) {
-            maze = new Maze(*original.maze);
-        }
-        else {
-            maze = nullptr;
+    Enemy(Maze* m) : maze(m) {
+        if (m != nullptr) {
+            maze = new Maze(*m); // Создание нового объекта Maze путем копирования
         }
     }
 
-    void EnemyGeneration(int** bomber) {
+    void EnemyGeneration() {
+        int** bomber = maze->GetBomber();
+
         for (int y = 0; y < maze->GetHeight(); y++) {
             for (int x = 0; x < maze->GetWidth(); x++) {
                 int r = rand() % 5; // 0...9
@@ -154,7 +141,8 @@ public:
         }
     }
 
-    void Joystick(int** bomber) {
+    void Joystick() {
+        int** bomber = maze->GetBomber();
         Sleep(15);
         // движение врагов
         COORD enemy_positions[100]; // массив который хранит координаты врагов
@@ -258,10 +246,6 @@ public:
             }
         }
     }
-
-    ~Enemy() {
-        delete[]maze;
-    }
 };
 
 class Bomb {
@@ -329,44 +313,24 @@ public:
 
 class Bomber {
 private:
-    Bomb* bomb = nullptr;
-    Maze* maze = nullptr;
-    Enemy* enemy = nullptr;
+    Bomb* bomb;
+    Maze* maze;
+    Enemy* enemy;
     int health_person = 100;
     int count_of_coins = 0;
 public:
     
-    Bomber(Maze* m, Bomb* b, Enemy* e) : maze(m), bomb(b), enemy(e) {
+    Bomber(Bomb* b, Enemy* e) : bomb(b), enemy(e) {
         SetHealthPerson(100);
         SetCountOfCoins(0);
     }
-
+    
     Bomber(const Bomber& original) {
-        // Копируем здоровье и количество монет
         health_person = original.health_person;
         count_of_coins = original.count_of_coins;
-
-        // Создаем новые объекты Bomb и Enemy с использованием копирующего конструктора
-        if (original.bomb) {
-            bomb = new Bomb(*original.bomb);
-        }
-        else {
-            bomb = nullptr;
-        }
-
-        if (original.maze) {
-            maze = new Maze(*original.maze);
-        }
-        else {
-            maze = nullptr;
-        }
-
-        if (original.enemy) {
-            enemy = new Enemy(*original.enemy);
-        }
-        else {
-            enemy = nullptr;
-        }
+        this->bomb = new Bomb(*original.bomb);
+        this->enemy = new Enemy(*original.enemy);
+        this->maze = new Maze(*original.maze);
     }
 
     Bomber() {
@@ -378,7 +342,7 @@ public:
         this->health_person = health_person;
     }
 
-    void SetCountOfCoins(int health_person) {
+    void SetCountOfCoins(int count_of_coins) {
         this->count_of_coins = count_of_coins;
     }
 
@@ -390,10 +354,11 @@ public:
         return count_of_coins;
     }
 
-    void Person(int** bomber, int x, int y) {// Рисует персонажа в указанных координатах
+    void Person(int x, int y) {// Рисует персонажа в указанных координатах
         COORD position;
         position.X = x;
         position.Y = y;
+        
         maze->SetCursor(x, y, 12);
         cout << (char)1; // Можно использовать любой другой символ или строку для отображения персонажа
 
@@ -406,20 +371,20 @@ public:
                 // Стираем персонажа в текущей позиции
                 SetConsoleCursorPosition(maze->GetH(), position);
                 cout << " ";
-                if (code == RIGHT && bomber[position.Y][position.X + 1] != WALL && bomber[position.Y][position.X + 1] != WALLTWO && bomber[position.Y][position.X + 1] != WALLTHREE) {// right 
+                if (code == RIGHT && maze->GetBomber()[position.Y][position.X + 1] != WALL && maze->GetBomber()[position.Y][position.X + 1] != WALLTWO && maze->GetBomber()[position.Y][position.X + 1] != WALLTHREE) {// right 
                     position.X++; // изменение позиции ГГ вправо на 1 по иксу
                 }
-                else if (code == LEFT && bomber[position.Y][position.X - 1] != WALL && bomber[position.Y][position.X - 1] != WALLTWO && bomber[position.Y][position.X - 1] != WALLTHREE) {
+                else if (code == LEFT && maze->GetBomber()[position.Y][position.X - 1] != WALL && maze->GetBomber()[position.Y][position.X - 1] != WALLTWO && maze->GetBomber()[position.Y][position.X - 1] != WALLTHREE) {
                     position.X--;// изменение позиции ГГ влево на 1 по иксу            
                 }
-                else if (code == UP && bomber[position.Y - 1][position.X] != WALL && bomber[position.Y - 1][position.X] != WALLTWO && bomber[position.Y - 1][position.X] != WALLTHREE) {
+                else if (code == UP && maze->GetBomber()[position.Y - 1][position.X] != WALL && maze->GetBomber()[position.Y - 1][position.X] != WALLTWO && maze->GetBomber()[position.Y - 1][position.X] != WALLTHREE) {
                     position.Y--;// изменение позиции ГГ вверх на 1 по иксу          
                 }
-                else if (code == DOWN && bomber[position.Y + 1][position.X] != WALL && bomber[position.Y + 1][position.X] != WALLTWO && bomber[position.Y + 1][position.X] != WALLTHREE) {
+                else if (code == DOWN && maze->GetBomber()[position.Y + 1][position.X] != WALL && maze->GetBomber()[position.Y + 1][position.X] != WALLTWO && maze->GetBomber()[position.Y + 1][position.X] != WALLTHREE) {
                     position.Y++;// изменение позиции ГГ вниз на 1 по иксу
                 }
                 // Если нажата клавиша пробела
-                else if (code == SPACE && bomber[position.Y][position.X + 1] != WALL && bomb->GetCountOfBomb() != 0) {
+                else if (code == SPACE && maze->GetBomber()[position.Y][position.X + 1] != WALL && bomb->GetCountOfBomb() != 0) {
                     bomb->SetBomb(true);
                     bomb->SetbX(position.X);
                     bomb->SetbY(position.Y);
@@ -445,22 +410,22 @@ public:
                                 int newY = bomb_position.Y + j;
 
                                 if (newX >= 0 && newX < maze->GetWidth() && newY >= 0 && newY < maze->GetHeight()) {
-                                    if (bomber[newY][newX] != WALL) {
+                                    if (maze->GetBomber()[newY][newX] != WALL) {
                                         int a = rand() % 2 + 5;
-                                        if (bomber[newY][newX] == WALLTHREE) {
+                                        if (maze->GetBomber()[newY][newX] == WALLTHREE) {
                                             if (a == 5) {
-                                                bomber[newY][newX] = BOMB;
+                                                maze->GetBomber()[newY][newX] = BOMB;
                                                 maze->SetCursor(newX, newY, PURPUR);
                                                 cout << (char)254;
                                             }
                                             if (a == 6) {
-                                                bomber[newY][newX] = HEALTH;
+                                                maze->GetBomber()[newY][newX] = HEALTH;
                                                 maze->SetCursor(newX, newY, 14);
                                                 cout << (char)3;
                                             }
                                         }
                                         else {
-                                            bomber[newY][newX] = 0;
+                                            maze->GetBomber()[newY][newX] = 0;
                                             maze->SetCursor(newX, newY, 0);
                                             cout << ' ';
                                         }
@@ -483,17 +448,17 @@ public:
                 cout << "Hit points: ";
                 cout << health_person;
 
-                if (bomber[position.Y][position.X] == ENEMY) {
+                if (maze->GetBomber()[position.Y][position.X] == ENEMY) {
                     health_person -= 20;
-                    bomber[position.Y][position.X] = 0;
+                    maze->GetBomber()[position.Y][position.X] = 0;
                     maze->SetCursor(maze->GetWidth() + 1, 1, PURPUR);
                     cout << "Hit points: ";
                     cout << health_person;
                     cout << " ";
                 }
-                if (bomber[position.Y][position.X] == HEALTH and health_person < 100) {
+                if (maze->GetBomber()[position.Y][position.X] == HEALTH and health_person < 100) {
                     health_person += 20;
-                    bomber[position.Y][position.X] = 0;
+                    maze->GetBomber()[position.Y][position.X] = 0;
                     maze->SetCursor(maze->GetWidth() + 1, 1, PURPUR);
                     cout << "Hit points: ";
                     cout << health_person;
@@ -512,10 +477,10 @@ public:
                     cout << " ";
                 }
 
-                if (bomber[position.Y][position.X] == BOMB and bomb->GetCountOfBomb() < 10) {
+                if (maze->GetBomber()[position.Y][position.X] == BOMB and bomb->GetCountOfBomb() < 10) {
                     bomb->SetPlusBomb(1);
                     
-                    bomber[position.Y][position.X] = 0;
+                    maze->GetBomber()[position.Y][position.X] = 0;
                     maze->SetCursor(maze->GetWidth() + 1, 3, YELLOW);
                     cout << "Number of bombs: ";
                     cout << bomb->GetCountOfBomb();
@@ -529,15 +494,21 @@ public:
             }
 
             else { // нажатия не было, двигаем врагов
-                enemy->Joystick(maze->GetBomber());
+                enemy->Joystick();
             }
         }
     }
-    
+    //
     ~Bomber() {
-        delete[]bomb;
-        delete[]maze;
-        delete[]enemy;
+        if (maze != nullptr) {
+            delete maze;
+        }
+        if (enemy != nullptr) {
+            delete maze;
+        }
+        if (bomb != nullptr) {
+            delete bomb;
+        }
     }
 };
 
@@ -546,18 +517,18 @@ private:
     Maze* maze = nullptr;
 public:
 
-    Wall(Maze* m) : maze(m) {}
-
-    Wall(const Wall& original) {
-        if (original.maze) {
-            maze = new Maze(*original.maze);
-        }
-        else {
-            maze = nullptr;
+    Wall(Maze* m) {
+        if (m != nullptr) {
+            maze = new Maze(*m); // Создание нового объекта Maze путем копирования
         }
     }
 
-    void WallGenerate(int** bomber) {
+    Wall(const Wall& original) {
+        this->maze = new Maze(*original.maze);
+    }
+
+    void WallGenerate() {
+        int** bomber = maze->GetBomber();
         for (int y = 0; y < maze->GetHeight(); y++) {
             for (int x = 0; x < maze->GetWidth(); x++) {
                 if (x == 0 || y == 0 || x == maze->GetWidth() - 1 || y == maze->GetHeight() - 1) {
@@ -571,7 +542,8 @@ public:
         }
     }
 
-    void WallsInsideTheMapOne(int** bomber, int x, int y) {
+    void WallsInsideTheMapOne(int x, int y) {
+        int** bomber = maze->GetBomber();
         HANDLE h = GetStdHandle(-11);
         COORD position;
         for (int j = 0; j < 1; j++) {
@@ -586,15 +558,16 @@ public:
         }
     }
 
-    void AutomateWallNumberTwo(int** bomber) {
+    void AutomateWallNumberTwo() {
         for (int i = 2; i <= 28; i += 2) {// идем по каждой второй строке
             for (int j = 2; j <= 14; j += 2) {// идем по каждой второй колонке
-                WallsInsideTheMapOne(bomber, i, j); // вызываем метод вывода стены с номером два
+                WallsInsideTheMapOne(i, j); // вызываем метод вывода стены с номером два
             }
         }
     }
 
-    void WallsInsideTheMapTwo(int** bomber) {
+    void WallsInsideTheMapTwo() {
+        int** bomber = maze->GetBomber();
         for (int y = 0; y < maze->GetHeight(); y++)
         {
             for (int x = 0; x < maze->GetWidth(); x++) {
@@ -610,7 +583,8 @@ public:
         }
     }
 
-    void WallsInsideTheMapThree(int** bomber) {
+    void WallsInsideTheMapThree() {
+        int** bomber = maze->GetBomber();
         for (int y = 0; y < maze->GetHeight(); y++) {
             for (int x = 0; x < maze->GetHeight(); x++) {
                 int r = rand() % 10; // 0...9
@@ -626,34 +600,110 @@ public:
     }
 
     ~Wall() {
-        delete[]maze;
+        if (maze != nullptr) {
+            delete maze;
+        }
     }
 };
 
-class Game {
-public: 
-
-    void Play() {
-        Maze maze(61, 17);
-        Bomb bomb;
-        Wall w(&maze);
-        Enemy enemy(&maze);
-        Bomber b(&maze, &bomb, &enemy);
-        system("title Bomberman");
-        maze.Options();
-        //////////////////////////////////////
-        enemy.EnemyGeneration(maze.GetBomber());
-        w.WallGenerate(maze.GetBomber());
-        w.AutomateWallNumberTwo(maze.GetBomber());
-        w.WallsInsideTheMapTwo(maze.GetBomber());
-        w.WallsInsideTheMapThree(maze.GetBomber());
-        b.Person(maze.GetBomber(), 2, 2);
-    }
-};
+//class Menu {
+//    const int NUM_MENU_ITEMS = 3;
+//    int ActiveMenuItem = 0; // Выбранный пункт меню
+//    int ch = 0; // Хранение нажатой клавиши
+//    bool exit = false; // для выхода из цикла
+//
+//public:
+//    void gotoxy(int x, int y) {
+//        COORD coord;
+//        coord.X = x;
+//        coord.Y = y;
+//        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+//    }
+//
+//    // Само меню основа
+//    void Menushka() {
+//        system("cls");
+//
+//        while (!exit) {
+//            ShowMenu();
+//            gotoxy(0, ActiveMenuItem);
+//
+//            ch = _getch();
+//            if (ch == 224)
+//                ch = _getch();
+//
+//            switch (ch) {
+//            case 27: // Стрелка вверх
+//                exit = true;
+//                break;
+//            case 72: // Стрелка вверх
+//                ActiveMenuItem = (ActiveMenuItem - 1 + NUM_MENU_ITEMS) % NUM_MENU_ITEMS;
+//                break;
+//            case 80: //Стрелка вниз
+//                ActiveMenuItem = (ActiveMenuItem + 1) % NUM_MENU_ITEMS;
+//                break;
+//            case 13: // Клавиша Энтер
+//                if (ActiveMenuItem == 0) {
+//                    system("cls"); // !!!!!!!!!!!!!!!!!!!
+//                    cout << "NEW GAME\n";
+//                    Sleep(1000);
+//                    return;
+//                }
+//                else if (ActiveMenuItem == 1) { // Об авторе кнопка
+//                    AboutAuthors();
+//                }
+//                else if (ActiveMenuItem == 2) { // Кнопка выход из игры
+//                    ::exit(0);
+//                }
+//                break;
+//            }
+//        }
+//    }
+//
+//    // Вывод лого
+//    void ShowLogo() {
+//        gotoxy(50, 15);
+//        cout << "BOMBERMAN!!!" << "\n";
+//        Sleep(1000);
+//    }
+//
+//    // Вывод меню
+//    void ShowMenu() {
+//        system("cls");
+//        cout << "Start game" << "\n";
+//        cout << "About authors" << "\n";
+//        cout << "Exit" << "\n";
+//    }
+//
+//    // Про нас
+//    void AboutAuthors() {
+//        system("cls");
+//        cout << "Bienoieva Malika" << "\n" << "Lolo Mukhammed\n\n\n\n";
+//        system("pause");
+//    }
+//};
 
 int main()
 {
     srand(time(NULL));
-    Game game;
-    game.Play();
+    system("title Bomberman");
+    Maze maze(61, 17);
+    Bomb bomb;
+ ///*   Menu menu;*/
+ //   menu.ShowLogo();
+ //   menu.Menushka();
+    Wall w(&maze);
+    Enemy enemy(&maze);
+    //////////////////////
+
+    Bomber b(&bomb, &enemy);
+
+    maze.Options();
+    enemy.EnemyGeneration();
+    w.WallGenerate();
+    w.AutomateWallNumberTwo();
+    w.WallsInsideTheMapTwo();
+    w.WallsInsideTheMapThree();
+
+    b.Person(2, 2);
 }
