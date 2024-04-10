@@ -67,8 +67,8 @@ public:
         COORD position;
         position.X = x;
         position.Y = y;
-        cout << position.Y << "\n";
-        cout << position.X << "\n";
+        //cout << position.Y << "\n";
+        //cout << position.X << "\n";
         SetConsoleCursorPosition(h, position);
         SetConsoleTextAttribute(h, color);
     }
@@ -322,7 +322,7 @@ private:
     int count_of_coins = 0;
 public:
     
-    Bomber (Maze* m, Bomb* b, Enemy*e ) : maze(m), bomb(b), enemy(e) {
+    Bomber(Maze* m, Bomb* b, Enemy* e) : maze(m), bomb(b),  enemy(e) {
         SetHealthPerson(100);
         SetCountOfCoins(0);
     }
@@ -506,7 +506,6 @@ public:
             }
         }
     }
-    //
     ~Bomber() {
         if (maze != nullptr) {
             delete maze;
@@ -622,16 +621,13 @@ int main()
     Bomb bomb;
     Wall w(&maze);
     Enemy enemy(&maze);
-    //////////////////////
 
     Bomber b(&maze, &bomb, &enemy);
-
-    //maze.Options();
+    maze.Options();
     enemy.EnemyGeneration();
-    //w.WallGenerate();
-    //w.AutomateWallNumberTwo();
-    //w.WallsInsideTheMapTwo();
-    //w.WallsInsideTheMapThree();
-
+    w.WallGenerate();
+    w.AutomateWallNumberTwo();
+    w.WallsInsideTheMapTwo();
+    w.WallsInsideTheMapThree();
     b.Person(2, 2);
 }
