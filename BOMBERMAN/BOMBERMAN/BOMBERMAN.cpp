@@ -89,8 +89,6 @@ public:
         Generation();//метод находится в КСП для того чтоб генерация была доступна для всех мктодов класса
     }
 
-    
-
     void SetWidth(int width) {
         this->width = width;
     }
@@ -106,8 +104,6 @@ public:
     int GetHeight() {
         return height;
     }
-
-    
 
     ~Maze() {
         if (bomber != nullptr) {
@@ -149,9 +145,7 @@ public:
     }
 
     void Joystick() {
-        int** bomber = maze->GetBomber();
-        int width = maze->GetWidth();
-        int height = maze->GetHeight();
+        
         Sleep(15);
         // движение врагов
         COORD enemy_positions[100]; // массив который хранит координаты врагов
@@ -160,7 +154,7 @@ public:
         for (int y = 0; y < maze->GetHeight(); y++) {// перебор строк
             for (int x = 0; x < maze->GetWidth(); x++) { // перебор столбцов
                 // если очередная ячейка - это враг
-                if (bomber[y][x] == MazeObject::ENEMY) {
+                if (maze->GetBomber()[y][x] == MazeObject::ENEMY) {
                     enemy_positions[enemy_count].X = x;
                     enemy_positions[enemy_count].Y = y;
                     enemy_count++;
@@ -171,87 +165,87 @@ public:
         for (int i = 0; i < enemy_count; i++) {
             int r = rand() % 100; // 0-left, 1-right, 2-up, 3-down
             if (r == LEFT &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALL &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTWO &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::ENEMY &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::BOMB &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::HEALTH &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTHREE) {
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALL &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTWO &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::ENEMY &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::BOMB &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::HEALTH &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTHREE) {
                 // стирание врага в старой позиции
                 COORD temp = enemy_positions[i];
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 cout << " ";
-                bomber[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
                 // перемещаем врага в новую позицию
                 temp.X = enemy_positions[i].X - 1;
                 temp.Y = enemy_positions[i].Y;
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 SetConsoleTextAttribute(maze->GetH(), Color::RED);
                 cout << (char)224;
-                bomber[enemy_positions[i].Y][enemy_positions[i].X - 1] = MazeObject::ENEMY;
+                maze->GetBomber() [enemy_positions[i].Y][enemy_positions[i].X - 1] = MazeObject::ENEMY;
             }
 
             else if (r == RIGHT &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALL &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTWO &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::ENEMY &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::BOMB &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::HEALTH &&
-                bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTHREE) {
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALL &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTWO &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::ENEMY &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::BOMB &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::HEALTH &&
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTHREE) {
                 // стирание врага в старой позиции
                 COORD temp = enemy_positions[i];
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 cout << " ";
-                bomber[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
                 // перемещаем врага в новую позицию
                 temp.X = enemy_positions[i].X + 1;
                 temp.Y = enemy_positions[i].Y;
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 SetConsoleTextAttribute(maze->GetH(), Color::RED);
                 cout << (char)224;
-                bomber[enemy_positions[i].Y][enemy_positions[i].X + 1] = MazeObject::ENEMY;
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] = MazeObject::ENEMY;
             }
 
             else if (r == UP &&
-                bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALL &&
-                bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
-                bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::ENEMY &&
-                bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::BOMB &&
-                bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::HEALTH &&
-                bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
+                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALL &&
+                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
+                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::ENEMY &&
+                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::BOMB &&
+                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::HEALTH &&
+                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
                 // стирание врага в старой позиции
                 COORD temp = enemy_positions[i];
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 cout << " ";
-                bomber[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
                 // перемещаем врага в новую позицию
                 temp.X = enemy_positions[i].X;
                 temp.Y = enemy_positions[i].Y - 1;
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 SetConsoleTextAttribute(maze->GetH(), Color::RED);
                 cout << (char)224;
-                bomber[enemy_positions[i].Y - 1][enemy_positions[i].X] = MazeObject::ENEMY;
+                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] = MazeObject::ENEMY;
             }
 
             else if (r == DOWN &&
-                bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALL &&
-                bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
-                bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::ENEMY &&
-                bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::BOMB &&
-                bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::HEALTH &&
-                bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
+                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALL &&
+                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
+                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::ENEMY &&
+                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::BOMB &&
+                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::HEALTH &&
+                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
                 // стирание врага в старой позиции
                 COORD temp = enemy_positions[i];
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 cout << " ";
-                bomber[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
                 // перемещаем врага в новую позицию
                 temp.X = enemy_positions[i].X;
                 temp.Y = enemy_positions[i].Y + 1;
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 SetConsoleTextAttribute(maze->GetH(), Color::RED);
                 cout << (char)224;
-                bomber[enemy_positions[i].Y + 1][enemy_positions[i].X] = MazeObject::ENEMY;
+                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] = MazeObject::ENEMY;
             }
         }
     }
