@@ -2,6 +2,7 @@
 #include <ctime>
 #include <Windows.h>
 #include <conio.h> 
+#include <SFML/Audio.hpp>
 using namespace std;
 
 enum MazeObject { HALL = 0, WALL = 1, WALLTWO = 2, WALLTHREE = 3, ENEMY = 4, BOMB = 5, HEALTH = 6 };
@@ -14,8 +15,6 @@ void SetCursor(int x, int y, int color) {
     COORD position;
     position.X = x;
     position.Y = y;
-    //cout << position.Y << "\n";
-    //cout << position.X << "\n";
     SetConsoleCursorPosition(h, position);
     SetConsoleTextAttribute(h, color);
 }
@@ -614,21 +613,124 @@ public:
     }
 };
 
+class Game {
+public:
+
+    void PlayGame() {
+        srand(time(NULL));
+        system("title Bomberman");
+        Maze maze(61, 17);
+        Bomb bomb;
+        Wall w(&maze);
+        Enemy enemy(&maze);
+        Bomber b(&maze, &bomb, &enemy);
+        Options();
+        enemy.EnemyGeneration();
+        w.WallGenerate();
+        w.AutomateWallNumberTwo();
+        w.WallsInsideTheMapTwo();
+        w.WallsInsideTheMapThree();
+        b.Person(2, 2);
+    }
+};
+
+class Menu {
+    const int NUM_MENU_ITEMS = 3;
+    int ActiveMenuItem = 0; // Выбранный пункт меню
+    int ch = 0; // Хранение нажатой клавиши
+    bool exit = false; // для выхода из цикла
+    Game game;
+public:
+    void gotoxy(int x, int y) {
+        COORD coord;
+        coord.X = x;
+        coord.Y = y;
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+    }
+
+
+
+    // Само меню основа
+    void Menushka() {
+        system("cls");
+
+        sf::SoundBuffer BlusterV1Buffer; BlusterV1Buffer.loadFromFile("D:\\C++\\C++ OOP\\DEMO BOMBER TEST\\MusicBomberMan\\mouseclick");
+        sf::Sound BlasterV1(BlusterV1Buffer);
+        BlasterV1.setVolume(100);
+
+        while (!exit) {
+            ShowMenu();
+            gotoxy(0, ActiveMenuItem);
+
+            ch = _getch();
+            if (ch == 224)
+                ch = _getch();
+
+            switch (ch) {
+            case 27: // Стрелка вверх
+
+                BlasterV1.play();
+
+                exit = true;
+                break;
+            case 72: // Стрелка вверх
+                BlasterV1.play();
+
+                ActiveMenuItem = (ActiveMenuItem - 1 + NUM_MENU_ITEMS) % NUM_MENU_ITEMS;
+                break;
+            case 80: //Стрелка вниз
+                BlasterV1.play();
+                ActiveMenuItem = (ActiveMenuItem + 1) % NUM_MENU_ITEMS;
+                break;
+            case 13: // Клавиша Энтер
+                BlasterV1.play();
+                if (ActiveMenuItem == 0) {
+                   
+                    system("cls"); // !!!!!!!!!!!!!!!!!!!
+                    cout << "NEW GAME\n";
+                    game.PlayGame();
+                    Sleep(1000);
+                    return;
+                }
+                else if (ActiveMenuItem == 1) { // Об авторе кнопка
+                    BlasterV1.play();
+                    AboutAuthors();
+                }
+                else if (ActiveMenuItem == 2) { // Кнопка выход из игры
+                    BlasterV1.play();
+                    ::exit(0);
+                }
+                break;
+            }
+        }
+    }
+
+    // Вывод лого
+    void ShowLogo() {
+        gotoxy(50, 15);
+        cout << "BOMBERMAN!!!" << "\n";
+        Sleep(1000);
+    }
+
+    // Вывод меню
+    void ShowMenu() {
+        system("cls");
+        cout << "Start game" << "\n";
+        cout << "About authors" << "\n";
+        cout << "Exit" << "\n";
+    }
+
+    // Про нас
+    void AboutAuthors() {
+        system("cls");
+        cout << "Bienoieva Malika" << "\n" << "Lolo Mukhammed\n\n\n\n";
+        system("pause");
+    }
+};
+
 int main()
 {
-    srand(time(NULL));
-    system("title Bomberman");
-    Maze maze(61, 17);
-    Bomb bomb;
-    Wall w(&maze);
-    Enemy enemy(&maze);
-
-    Bomber b(&maze, &bomb, &enemy);
-    Options();
-    enemy.EnemyGeneration();
-    w.WallGenerate();
-    w.AutomateWallNumberTwo();
-    w.WallsInsideTheMapTwo();
-    w.WallsInsideTheMapThree();
-    b.Person(2, 2);
+    Menu menu;
+    menu.ShowLogo();
+    menu.Menushka();
 }
