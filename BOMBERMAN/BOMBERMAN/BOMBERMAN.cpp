@@ -11,6 +11,20 @@ enum KeyCode { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, UP = 
 
 HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 
+void Help();
+void SetCursor();
+void Text_effect();
+void KeyBoard();
+void Stand();
+void Options();
+void The_end();
+
+void PlayS(string text, int volume) {
+    sf::SoundBuffer BlusterV1Buffer; BlusterV1Buffer.loadFromFile(text);
+    sf::Sound BlasterV1(BlusterV1Buffer);
+    BlasterV1.setVolume(volume);
+}
+
 void SetCursor(int x, int y, int color) {
     COORD position;
     position.X = x;
@@ -19,10 +33,32 @@ void SetCursor(int x, int y, int color) {
     SetConsoleTextAttribute(h, color);
 }
 
+void Text_effect(int x, int y, int forecolor, int backcolor, const char* text, int len, int pause)
+{
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    for (int i = 0; i < len; i++)
+    {
+        COORD temp = { x + i, y }; // будем ставить курсор в определённые координаты
+        SetConsoleCursorPosition(h, temp); // ставим
+        SetConsoleTextAttribute(h, backcolor * 16 + forecolor); // применяем цвет
+        cout << text[i]; // рисуем букву
+        Sleep(pause); // ждём
+    }
+}
+
 void KeyBoard(int x, int y) {
     COORD position;
     position.X = x;
     position.Y = y;
+}
+
+void Stand(int x, int y, int k, const char* str)
+{
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD c{ x, y };
+    SetConsoleCursorPosition(h, c);
+    SetConsoleTextAttribute(h, k);
+    cout << str << "\n";
 }
 
 void Options() {
@@ -41,9 +77,8 @@ private:
     int** bomber = nullptr;
 public:
 
-    Maze() {
-        SetWidth(61);
-        SetHeight(17);
+    Maze() : Maze(61, 17) {
+
     }
 
     Maze(const Maze& original) {
@@ -72,10 +107,12 @@ public:
         return h;
     }
 
-    void Generation() {//сделал генерацию для массива bomber
+    void Generation() { //сделал генерацию для массива bomber
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 bomber[y][x] = rand() % 7;
+                if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
+                    bomber[y][x] = WALL;
             }
         }
     }
@@ -85,7 +122,7 @@ public:
         for (int i = 0; i < height; i++) {
             bomber[i] = new int[width];
         }
-        Generation();//метод находится в КСП для того чтоб генерация была доступна для всех мктодов класса
+        Generation(); //метод находится в КСП для того чтоб генерация была доступна для всех мктодов класса
     }
 
     void SetWidth(int width) {
@@ -119,9 +156,9 @@ private:
     Maze* maze;
 public:
 
-    Enemy(Maze* m) : maze(m) {
+    Enemy(Maze* m) {
         if (m != nullptr) {
-            maze = new Maze(*m); // Создание нового объекта Maze путем копирования
+            maze = m; // Создание нового объекта Maze путем копирования
         }
     }
 
@@ -144,7 +181,7 @@ public:
     }
 
     void Joystick() {
-        
+
         Sleep(15);
         // движение врагов
         COORD enemy_positions[100]; // массив который хранит координаты врагов
@@ -163,13 +200,16 @@ public:
         // перебор всех врагов
         for (int i = 0; i < enemy_count; i++) {
             int r = rand() % 100; // 0-left, 1-right, 2-up, 3-down
-            if (r == LEFT &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALL &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTWO &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::ENEMY &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::BOMB &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::HEALTH &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] != MazeObject::WALLTHREE) {
+            int x = enemy_positions[i].X;
+            int y = enemy_positions[i].Y;
+            if (r == LEFT && x > 1
+                && maze->GetBomber()[y][x - 1] != MazeObject::WALL
+                && maze->GetBomber()[y][x - 1] != MazeObject::WALLTWO
+                && maze->GetBomber()[y][x - 1] != MazeObject::ENEMY
+                && maze->GetBomber()[y][x - 1] != MazeObject::BOMB
+                && maze->GetBomber()[y][x - 1] != MazeObject::HEALTH
+                && maze->GetBomber()[y][x - 1] != MazeObject::WALLTHREE
+                ) {
                 // стирание врага в старой позиции
                 COORD temp = enemy_positions[i];
                 SetConsoleCursorPosition(maze->GetH(), temp);
@@ -181,22 +221,24 @@ public:
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 SetConsoleTextAttribute(maze->GetH(), Color::RED);
                 cout << (char)224;
-                maze->GetBomber() [enemy_positions[i].Y][enemy_positions[i].X - 1] = MazeObject::ENEMY;
+                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X - 1] = MazeObject::ENEMY;
             }
 
-            else if (r == RIGHT &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALL &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTWO &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::ENEMY &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::BOMB &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::HEALTH &&
-                maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] != MazeObject::WALLTHREE) {
-                // стирание врага в старой позиции
+
+            else if (r == RIGHT && x < maze->GetWidth() - 2 &&
+                maze->GetBomber()[y][x + 1] != MazeObject::WALL &&
+                maze->GetBomber()[y][x + 1] != MazeObject::WALLTWO &&
+                maze->GetBomber()[y][x + 1] != MazeObject::ENEMY &&
+                maze->GetBomber()[y][x + 1] != MazeObject::BOMB &&
+                maze->GetBomber()[y][x + 1] != MazeObject::HEALTH &&
+                maze->GetBomber()[y][x + 1] != MazeObject::WALLTHREE
+                ) {
+
                 COORD temp = enemy_positions[i];
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 cout << " ";
                 maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
-                // перемещаем врага в новую позицию
+
                 temp.X = enemy_positions[i].X + 1;
                 temp.Y = enemy_positions[i].Y;
                 SetConsoleCursorPosition(maze->GetH(), temp);
@@ -205,19 +247,21 @@ public:
                 maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X + 1] = MazeObject::ENEMY;
             }
 
-            else if (r == UP &&
-                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALL &&
-                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
-                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::ENEMY &&
-                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::BOMB &&
-                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::HEALTH &&
-                maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
-                // стирание врага в старой позиции
+
+            else if (r == UP && y > 1 &&
+                maze->GetBomber()[y - 1][x] != MazeObject::WALL &&
+                maze->GetBomber()[y - 1][x] != MazeObject::WALLTWO &&
+                maze->GetBomber()[y - 1][x] != MazeObject::ENEMY &&
+                maze->GetBomber()[y - 1][x] != MazeObject::BOMB &&
+                maze->GetBomber()[y - 1][x] != MazeObject::HEALTH &&
+                maze->GetBomber()[y - 1][x] != MazeObject::WALLTHREE
+                ) {
+
                 COORD temp = enemy_positions[i];
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 cout << " ";
                 maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
-                // перемещаем врага в новую позицию
+
                 temp.X = enemy_positions[i].X;
                 temp.Y = enemy_positions[i].Y - 1;
                 SetConsoleCursorPosition(maze->GetH(), temp);
@@ -226,19 +270,20 @@ public:
                 maze->GetBomber()[enemy_positions[i].Y - 1][enemy_positions[i].X] = MazeObject::ENEMY;
             }
 
-            else if (r == DOWN &&
-                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALL &&
-                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTWO &&
-                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::ENEMY &&
-                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::BOMB &&
-                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::HEALTH &&
-                maze->GetBomber()[enemy_positions[i].Y + 1][enemy_positions[i].X] != MazeObject::WALLTHREE) {
-                // стирание врага в старой позиции
+            else if (r == DOWN && y < maze->GetHeight() - 2 &&
+                maze->GetBomber()[y + 1][x] != MazeObject::WALL &&
+                maze->GetBomber()[y + 1][x] != MazeObject::WALLTWO &&
+                maze->GetBomber()[y + 1][x] != MazeObject::ENEMY &&
+                maze->GetBomber()[y + 1][x] != MazeObject::BOMB &&
+                maze->GetBomber()[y + 1][x] != MazeObject::HEALTH &&
+                maze->GetBomber()[y + 1][x] != MazeObject::WALLTHREE
+                ) {
+
                 COORD temp = enemy_positions[i];
                 SetConsoleCursorPosition(maze->GetH(), temp);
                 cout << " ";
                 maze->GetBomber()[enemy_positions[i].Y][enemy_positions[i].X] = MazeObject::HALL;
-                // перемещаем врага в новую позицию
+
                 temp.X = enemy_positions[i].X;
                 temp.Y = enemy_positions[i].Y + 1;
                 SetConsoleCursorPosition(maze->GetH(), temp);
@@ -251,14 +296,13 @@ public:
 };
 
 class Bomb {
-private:
     int count_of_bombs;
     int using_bombs = 0;
     bool bomb;
     int bX;
     int bY;
-public:
 
+public:
     Bomb() {
         SetCountOfBomb(10);
         SetUsingBombs(0);
@@ -363,6 +407,8 @@ public:
             cout << "ERRRRRROOORRRRRR\n";
             return;
         }
+
+
         COORD position;
         position.X = x;
         position.Y = y;
@@ -380,15 +426,19 @@ public:
                 SetConsoleCursorPosition(maze->GetH(), position);
                 cout << " ";
                 if (code == RIGHT && maze->GetBomber()[position.Y][position.X + 1] != WALL && maze->GetBomber()[position.Y][position.X + 1] != WALLTWO && maze->GetBomber()[position.Y][position.X + 1] != WALLTHREE) {// right 
+                    PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\person.wav", 20);
                     position.X++; // изменение позиции ГГ вправо на 1 по иксу
                 }
                 else if (code == LEFT && maze->GetBomber()[position.Y][position.X - 1] != WALL && maze->GetBomber()[position.Y][position.X - 1] != WALLTWO && maze->GetBomber()[position.Y][position.X - 1] != WALLTHREE) {
+                    PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\person.wav", 20);
                     position.X--;// изменение позиции ГГ влево на 1 по иксу            
                 }
                 else if (code == UP && maze->GetBomber()[position.Y - 1][position.X] != WALL && maze->GetBomber()[position.Y - 1][position.X] != WALLTWO && maze->GetBomber()[position.Y - 1][position.X] != WALLTHREE) {
+                    PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\person.wav", 20);
                     position.Y--;// изменение позиции ГГ вверх на 1 по иксу          
                 }
                 else if (code == DOWN && maze->GetBomber()[position.Y + 1][position.X] != WALL && maze->GetBomber()[position.Y + 1][position.X] != WALLTWO && maze->GetBomber()[position.Y + 1][position.X] != WALLTHREE) {
+                    PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\person.wav", 20);
                     position.Y++;// изменение позиции ГГ вниз на 1 по иксу
                 }
                 // Если нажата клавиша пробела
@@ -400,6 +450,7 @@ public:
 
                 else if (code == 13 && bomb->GetCountOfBomb() != 0) {
                     if (bomb->GetBomb() == true) {
+                        PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\pushbomb.wav", 35);
                         SetCursor(bomb->GetbX(), bomb->GetbY(), PURPUR);
                         cout << (char)254;
                     }
@@ -407,6 +458,7 @@ public:
 
                 else if (code == 103 && bomb->GetCountOfBomb() != 0) {
                     if (bomb->GetBomb() == true) {
+                        PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\bomb.wav", 35);
                         bomb->SetMinusBomb(1);
                         COORD bomb_position;
                         bomb_position.X = bomb->GetbX();
@@ -520,18 +572,17 @@ public:
 };
 
 class Wall {
-private:
     Maze* maze = nullptr;
 public:
 
     Wall(Maze* m) {
         if (m != nullptr) {
-            maze = new Maze(*m); // Создание нового объекта Maze путем копирования
+            maze = m; // Создание нового объекта Maze путем копирования
         }
     }
 
     Wall(const Wall& original) {
-        this->maze = new Maze(*original.maze);
+        this->maze = original.maze;
     }
 
     void WallGenerate() {
@@ -608,7 +659,7 @@ public:
 
     ~Wall() {
         if (maze != nullptr) {
-            delete maze;
+            //delete maze;
         }
     }
 };
@@ -617,6 +668,7 @@ class Game {
 public:
 
     void PlayGame() {
+        PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\main.wav", 60);
         srand(time(NULL));
         system("title Bomberman");
         Maze maze(61, 17);
@@ -624,7 +676,6 @@ public:
         Wall w(&maze);
         Enemy enemy(&maze);
         Bomber b(&maze, &bomb, &enemy);
-        Options();
         enemy.EnemyGeneration();
         w.WallGenerate();
         w.AutomateWallNumberTwo();
@@ -648,61 +699,95 @@ public:
         SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
     }
 
+    void Exit()
+    {
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(h, 0);
+        system("taskkill -im cmd.exe"); // закрываем все процессы по имени cmd - это все консольные окна
+    }
 
-
-    // Само меню основа
-    void Menushka() {
+    void Menu2()
+    {
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        system("title Maze");
+        int start_y = 3;
         system("cls");
+        Stand(5, start_y, 10, "Help");
+        Stand(5, start_y + 2, 2, "Game");
+        Stand(5, start_y + 4, 2, "Exit");
 
-        sf::SoundBuffer BlusterV1Buffer; BlusterV1Buffer.loadFromFile("D:\\C++\\C++ OOP\\DEMO BOMBER TEST\\MusicBomberMan\\mouseclick");
-        sf::Sound BlasterV1(BlusterV1Buffer);
-        BlasterV1.setVolume(100);
-
-        while (!exit) {
-            ShowMenu();
-            gotoxy(0, ActiveMenuItem);
-
-            ch = _getch();
-            if (ch == 224)
-                ch = _getch();
-
-            switch (ch) {
-            case 27: // Стрелка вверх
-
-                BlasterV1.play();
-
-                exit = true;
-                break;
-            case 72: // Стрелка вверх
-                BlasterV1.play();
-
-                ActiveMenuItem = (ActiveMenuItem - 1 + NUM_MENU_ITEMS) % NUM_MENU_ITEMS;
-                break;
-            case 80: //Стрелка вниз
-                BlasterV1.play();
-                ActiveMenuItem = (ActiveMenuItem + 1) % NUM_MENU_ITEMS;
-                break;
-            case 13: // Клавиша Энтер
-                BlasterV1.play();
-                if (ActiveMenuItem == 0) {
-                   
-                    system("cls"); // !!!!!!!!!!!!!!!!!!!
-                    cout << "NEW GAME\n";
+        int k;
+        int cur = 1;
+        while (true)
+        {
+            k = _getch();
+            if (k == 80)
+            {
+                PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\clixk.wav", 30);
+                if (cur < 3)
+                {
+                    cur++;
+                    if (cur == 2)
+                    {
+                        Stand(5, start_y, 2, "Help");
+                        Stand(5, start_y + 2, 10, "Game");
+                    }
+                    else if (cur == 3) {
+                        Stand(5, start_y + 2, 2, "Game");
+                        Stand(5, start_y + 4, 10, "Exit");
+                    }
+                }
+            }
+            else if (k == 72)
+            {
+                PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\clixk.wav", 30);
+                if (cur > 1)
+                {
+                    cur--;
+                    if (cur == 2)
+                    {
+                        Stand(5, start_y + 2, 10, "Game");
+                        Stand(5, start_y + 4, 2, "Exit");
+                    }
+                    else if (cur == 1)
+                    {
+                        Stand(5, start_y, 10, "Help");
+                        Stand(5, start_y + 2, 2, "Game");
+                    }
+                }
+            }
+            else if (k == 13)
+            {
+                PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\clixk.wav", 30);
+                system("cls");
+                SetConsoleTextAttribute(h, 12);
+                if (cur == 1)
+                {
+                    Help();
+                }
+                else if (cur == 2)
+                {
+                    PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\clixk.wav", 30);
                     game.PlayGame();
-                    Sleep(1000);
-                    return;
                 }
-                else if (ActiveMenuItem == 1) { // Об авторе кнопка
-                    BlasterV1.play();
-                    AboutAuthors();
-                }
-                else if (ActiveMenuItem == 2) { // Кнопка выход из игры
-                    BlasterV1.play();
+                else if (cur == 3)
+                {
+                    PlayS("C:\\Users\\lolim\\Documents\\MusicBomberMan\\clixk.wav", 30);
+                    The_end();
+
                     ::exit(0);
                 }
-                break;
+                
             }
         }
+    }
+
+    void The_end()
+    {
+        Text_effect(5, 2, 12, 0, "Thank you for playing!", 30, 20); // красным цветом благодарим за игру
+        Text_effect(5, 4, 7, 0, "Press Enter to exit", 24, 15); // белым цветом выводим просьбу нажать на энтер
+        while (_getch() != 13); // до тех пор, пока пользователь не нажмёт на энтер - у него код 13
+        Exit(); // выходим
     }
 
     // Вывод лого
@@ -711,26 +796,30 @@ public:
         cout << "BOMBERMAN!!!" << "\n";
         Sleep(1000);
     }
-
-    // Вывод меню
-    void ShowMenu() {
-        system("cls");
-        cout << "Start game" << "\n";
-        cout << "About authors" << "\n";
-        cout << "Exit" << "\n";
-    }
-
-    // Про нас
-    void AboutAuthors() {
-        system("cls");
-        cout << "Bienoieva Malika" << "\n" << "Lolo Mukhammed\n\n\n\n";
-        system("pause");
-    }
 };
+
+void Help()
+{
+
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(h, 10);
+    system("type aboutgame.txt"); // стандартная команда виндовс по распечатке файла (файл лежит в папке с проектом!)
+
+    while (true)
+    {
+        int n = _getch();
+        if (n == 27 || n == 'n')
+        {
+            Menu m;
+            m.Menu2();
+        }
+    }
+}
 
 int main()
 {
+    Options();
     Menu menu;
     menu.ShowLogo();
-    menu.Menushka();
+    menu.Menu2();
 }
